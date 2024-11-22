@@ -1,0 +1,14 @@
+/* .vitepress/theme/custom.css */
+:root {
+  --vp-c-brand-1: #06D6A0;
+  --vp-c-brand-2: #747bff;
+	--vp-c-white: #ffffff;
+  --vp-c-black: #373737;
+}
+// fix vb style
+.fly-form{
+ul{
+		padding: 0!important;
+		margin:  0!important;
+	}
+}

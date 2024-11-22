@@ -1,0 +1,1076 @@
+<script lang="ts">
+import './styles.scss'
+import { requireTypes, hasOwnPropertySafely } from './formParser'
+import type { FormInstance } from 'element-plus'
+import { ElMessage } from 'element-plus'
+import type FlyFormTypes from './types.d.ts'
+import {
+  defineComponent,
+  ref,
+  h,
+  watch,
+  nextTick,
+  getCurrentInstance,
+  resolveComponent,
+} from 'vue'
+export default defineComponent({
+  name: 'FlyForm',
+  props: {
+    // 模式 默认form表单模式 search为搜索条模式
+    model: {
+      type: String,
+      default: 'form',
+    },
+    // 是否启用单步错误提示 如果有多个未通过的表单项，只会依次提示第一个未通过的表单项
+    singleStepErrorTip: {
+      type: Boolean,
+      default: false,
+    },
+    // 是否启用加载状态ui
+    enableSpin: {
+      type: Boolean,
+      default: true,
+    },
+    // 行内换行模式
+    inlineBlock: {
+      type: Boolean,
+      default: false,
+    },
+    /**
+     * 表单数据
+     */
+    form: {
+      type: Object,
+      require: true,
+    },
+    /**
+     * 表单状态
+     */
+    status: {
+      type: String,
+      default: 'create',
+    },
+    /**
+     * 表单配置
+     */
+    formProps: {
+      type: Object,
+      default: () => {
+        return {}
+      },
+    },
+    /**
+     * 表单事件
+     */
+    formEvents: {
+      type: Object,
+      default: () => {
+        return {}
+      },
+    },
+    /**表单项配置 */
+    formItemProps: {
+      type: Object,
+      default: () => {
+        return {}
+      },
+    },
+    // 是否展示表单底部
+    showFooter: {
+      type: Boolean,
+      default: true,
+    },
+    footerRowProps: {
+      type: Object,
+      default: () => {
+        return {}
+      },
+    },
+    // 表单操作按钮
+    action: {
+      type: Array,
+      default: () => {
+        return ['submit', 'reset']
+      },
+    },
+    // 表单操作按钮配置
+    actionProps: {
+      type: Object,
+      default: () => {
+        return {}
+      },
+    },
+    // 严格模式只接受内置的表单项
+    strict: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  setup(props, context) {
+    const isFirstInit = ref(true)
+    const formContent = ref({})
+    const requests = ref<{ [key: string]: () => Promise<any> }>({})
+    const rules: Record<string, any> = ref({})
+    const sourceData: Record<string, any> = ref({})
+    const formValues: Record<string, any> = ref({})
+    const formInitValues: Record<string, any> = ref({})
+    const formKeyAndName: Record<string, any> = ref({})
+    const FlyFormRef = ref<FormInstance | null>(null)
+    const needOverWriteForm = ref(null)
+    const generatorRluesAndRequests = async (form: FlyFormTypes.Form) => {
+      // 如果没有数据直接返回
+      // 递归处理form数据
+      const res = collectFormContent(form)
+      // 优先 rules生成
+      formContent.value = res.formContent
+      rules.value = res.rules
+      requests.value = res.requests
+      // 第一次渲染dom时 form表单初始值
+      if (isFirstInit.value) {
+        // 请求生成
+        const requests = Object.keys(res.requests).map((key: string) => {
+          return res.requests[key as keyof typeof res.requests]()
+        })
+        // form表单初始值 用于重置表单 每次生成新的初始值避免修改form之后重置表单会将用户主动设置的值清空
+        formInitValues.value = Object.assign({}, res.formData)
+        // 执行请求 完成数据源拉取
+        if (requests && requests.length > 0) {
+          await Promise.allSettled(requests).catch((err) => {
+            console.warn(err)
+          })
+          console.log('requests请求', requests)
+        }
+        // form表单生成
+        formValues.value = Object.assign({}, res.formData)
+        if (needOverWriteForm.value) {
+          // @ts-ignore
+          this.overWrite(this.needOverWriteForm)
+          needOverWriteForm.value = null
+        }
+        isFirstInit.value = false
+      }
+      // form表单初始值 用于重置表单 每次生成新的初始值避免修改form之后重置表单会将用户主动设置的值清空
+    }
+    const collectFormContent = (
+      data: FlyFormTypes.FormItem[] = []
+    ): FlyFormTypes.CollectedFormContent => {
+      const res: FlyFormTypes.CollectedFormContent = {
+        formContent: [],
+        formData: {},
+        rules: {},
+        requests: {},
+      }
+
+      const inputTips = ['el-input', 'el-input-number']
+
+      data.forEach((item: FlyFormTypes.FormItem) => {
+        formKeyAndName.value[item.key] = item.name
+        // 如果设置了key自动设置不同类型默认值
+        if (Object.prototype.hasOwnProperty.call(item, 'key')) {
+          // q: 为什么要这样处理
+          // a: 因为el-form-item的value默认值是undefined，如果设置了默认值，会导致el-form-item的value和el-form的value不一致，导致校验不通过
+          if (item.type === 'el-input-number') {
+            res.formData[item.key] = Object.prototype.hasOwnProperty.call(
+              item,
+              'value'
+            )
+              ? item.value
+              : null
+          } else if (item.type === 'el-checkbox-group') {
+            res.formData[item.key] = Object.prototype.hasOwnProperty.call(
+              item,
+              'value'
+            )
+              ? item.value
+              : []
+          } else {
+            res.formData[item.key] = Object.prototype.hasOwnProperty.call(
+              item,
+              'value'
+            )
+              ? item.value
+              : undefined
+          }
+        }
+
+        // 如果设置了rules自动设置rules
+        if (
+          Object.prototype.hasOwnProperty.call(item, 'rules') &&
+          item.rules!.length > 0
+        ) {
+          res.rules[item.key] = item.rules
+        }
+
+        // 如果设置了required自动生成校验提示
+        // rlues对number类型的校验有问题，需要手动设置type
+        if (item.required) {
+          const requiredType = Object.prototype.hasOwnProperty.call(
+            item,
+            'requiredType'
+          )
+            ? item.requiredType
+            : requireTypes[item.type] || 'string' // 默认值
+
+          const tips = {
+            required: true,
+            message: `${inputTips.includes(item.type) ? '请填写' : '请选择'}${
+              item.name
+            }`,
+            trigger: 'change',
+            type: requiredType,
+          }
+
+          if (
+            Object.prototype.hasOwnProperty.call(res.rules, item.key) &&
+            res.rules[item.key]!.length > 0
+          ) {
+            res.rules[item.key] = [tips, ...res.rules[item.key]!]
+          } else {
+            res.rules[item.key] = [tips]
+          }
+        }
+
+        if (
+          hasOwnPropertySafely(item, 'source') &&
+          hasOwnPropertySafely(item.source, 'requestFunction')
+        ) {
+          res.requests[item.key] = generatorRequestFunction(item)
+        }
+        // 如果设置了source自动设置传入静态数据源
+        else if (
+          Object.prototype.hasOwnProperty.call(item, 'source') &&
+          Object.prototype.hasOwnProperty.call(item.source, 'data') &&
+          item.source
+        ) {
+          sourceData.value[item.key] = item.source.data
+        } else {
+          !Object.prototype.hasOwnProperty.call(sourceData.value, item.key) &&
+            (sourceData.value[item.key] = [])
+        }
+
+        // 如果没有placeholder自动生成
+        if (!item.placeholder) {
+          item.placeholder =
+            (inputTips.includes(item.type) ? '请填写' : '请选择') + item.name
+        }
+
+        // 剪除source属性，初始化之后不再允许通过修改source属性来修改数据源，因为source属性是用来生成请求的且只能生成一次，如需调整指定数据源，可以通过修改source.data属性来实现或者通过内部方法changeSource手动实现
+        const mItem: FlyFormTypes.FormItem = { ...item }
+        if (Object.prototype.hasOwnProperty.call(mItem, 'source')) {
+          delete mItem.source
+        }
+
+        if (
+          item.type === 'el-row' &&
+          Object.prototype.hasOwnProperty.call(item, 'children') &&
+          item.children!.length > 0
+        ) {
+          const cRes = collectFormContent(item.children!)
+          res.rules = { ...res.rules, ...cRes.rules }
+          res.formData = { ...res.formData, ...cRes.formData }
+          res.requests = { ...res.requests, ...cRes.requests }
+          mItem.children = cRes.formContent
+        }
+
+        res.formContent.push(mItem)
+      })
+
+      return res
+    }
+    const generatorRequestFunction = (item: FlyFormTypes.FormItem) => {
+      const source: any = item.source
+      return async function () {
+        try {
+          const {
+            requestFunction,
+            params,
+            handle,
+            effectKeys,
+            effectKeysHandle,
+          } = source
+
+          let requestParams = params || null
+          if (effectKeys && effectKeys.length > 0) {
+            // 从this.formValues中取值
+            const effectKeysFormValues: any = {}
+            for (let i = 0; i < effectKeys.length; i++) {
+              effectKeysFormValues[effectKeys[i]] =
+                formValues.value[effectKeys[i]]
+            }
+            requestParams = requestParams
+              ? { requestParams, ...effectKeysFormValues }
+              : effectKeysFormValues
+            if (effectKeysHandle && typeof effectKeysHandle === 'function') {
+              requestParams = effectKeysHandle({
+                requestParams,
+                ...effectKeysFormValues,
+              })
+            }
+          }
+          const res = requestParams
+            ? await requestFunction(requestParams)
+            : await requestFunction()
+
+          // 将请求到的数据赋值给sourceData
+
+          sourceData.value[item.key] = handle
+            ? handle(
+                res,
+                requestParams,
+                formValues.value || formInitValues.value
+              )
+            : res
+          return res
+        } catch (err) {
+          // 返回一个错误对象
+          console.error(err)
+          return { error: err }
+        }
+      }
+    }
+
+    // 执行初始化
+    generatorRluesAndRequests(props.form as any)
+    // 监听表单数据变化
+    // @ts-ignore
+    watch(
+      // @ts-ignore
+      props.form,
+      async (newVal, oldVal: FlyFormTypes.Form) => {
+        // @ts-ignore
+        await generatorRluesAndRequests(newVal)
+      },
+      {
+        deep: true,
+      }
+    )
+
+    return {
+      isFirstInit,
+      formContent,
+      requests,
+      rules,
+      sourceData,
+      formInitValues,
+      formKeyAndName,
+      formValues,
+      FlyFormRef,
+      needOverWriteForm,
+    }
+  },
+
+  methods: {
+    async submit() {
+
+      // @ts-ignore
+      const formRef: FormInstance = this.$refs.FlyFormRef
+      await formRef.validate((valid: any, errors: any) => {
+        this.$emit('submit', {
+          valid,
+          formValues: this.formValues,
+        })
+
+        if (!valid && this.$props.model === 'search') {
+          const errorMsg: any[] = []
+          const errorNames: any[] = []
+
+          Object.keys(errors).forEach((key) => {
+            const item = errors[key][0]
+            // 表单校验未通过
+            errorMsg.push(item.message)
+            errorNames.push(this.formKeyAndName[key])
+          })
+
+          // 只依次提示第一个错误
+          if (this.$props.singleStepErrorTip) {
+            ElMessage.error(errorMsg[0])
+          } else {
+            ElMessage.error(
+              `请完善${
+                errorNames.length > 0 ? errorNames.join('、') : '查询条件'
+              }`
+            )
+          }
+        }
+      })
+    },
+    reset() {
+      // @ts-ignore
+      const formRef: FormInstance = this.$refs.FlyFormRef
+      formRef.resetFields()
+      this.$emit('reset')
+    },
+    overWrite(data: any) {
+      const $this = this
+      Object.keys(data).forEach((key) => {
+        if (hasOwnPropertySafely($this.formValues, key)) {
+          $this.formValues[key] = data[key]
+        }
+      })
+    },
+    setFormData(data: any) {
+      // @ts-ignore
+      const formRef: FormInstance = this.$refs.FlyFormRef
+      if (data) {
+        formRef.resetFields()
+        this.$nextTick(() => {
+          if (this.$refs['formValues']) {
+            Object.keys(data).forEach((key) => {
+              if (hasOwnPropertySafely(this.formValues, key)) {
+                this.formValues[key] = data[key]
+              }
+            })
+          } else {
+            this.needOverWriteForm = data
+          }
+        })
+      }
+    },
+    // 手动更新某些数据源
+    async updateSources(keys: string | string[]) {
+      if (!keys) return
+      let updateRequests: Promise<any>[] = []
+      if (Array.isArray(keys)) {
+        for (let i = 0; i < keys.length; i++) {
+          updateRequests.push(this.requests[keys[i]]())
+        }
+      } else {
+        updateRequests = [this.requests[keys]()]
+      }
+      if (updateRequests.length === 0) {
+        return
+      }
+      await Promise.allSettled(updateRequests).catch((err) => {
+        console.warn(err)
+      })
+      this.$forceUpdate()
+    },
+    /**
+     * 设置表单值
+     */
+    setFormValue(key: string, value: any) {
+      if (hasOwnPropertySafely(this.formValues, key)) {
+        this.formValues[key] = value
+      } else {
+        console.error('表单中不存在' + key + '属性')
+      }
+    },
+    getFormValues() {
+      return this.formValues
+    },
+    clearValidate(data?: any) {
+      // @ts-ignore
+      const formRef: FormInstance = this.$refs.FlyFormRef
+      if (data) {
+        window.requestAnimationFrame(() => {
+          formRef.clearValidate(data)
+        })
+      } else {
+        this.$nextTick(() => {
+          window.requestAnimationFrame(() => {
+            formRef.clearValidate()
+          })
+        })
+      }
+    },
+  },
+  render(props: any) {
+
+    const generatorFormButton = () => {
+      return h(
+        // @ts-ignore
+        'div',
+        {
+          class: 'fly-form-buttons',
+        },
+        { default: () => generatorFooterButton() }
+      )
+    }
+		const generatorFooterButton = () => {
+  const btns: FlyFormTypes.VNode = {
+    reset: h(
+      resolveComponent('el-button'),
+      {
+        type: 'default',
+        onClick: () => {
+          this.reset()
+        },
+      },
+      {
+        default: () => '重置', // 改为函数形式插槽
+      }
+    ),
+    submit: h(
+      resolveComponent('el-button'),
+      {
+        type: 'primary',
+        onClick: () => {
+          this.submit()
+        },
+      },
+      {
+        default: () =>
+          props.model === 'search'
+            ? '搜索'
+            : props.status === 'create'
+            ? '保存'
+            : '修改',
+      }
+    ),
+  }
+
+  if (props.action) {
+    return props.action.map((btn: string) => {
+      // 如果设置了 actionProps
+      if (hasOwnPropertySafely(props.actionProps, btn)) {
+        return h(
+          resolveComponent('el-button'),
+          {
+            type: 'default',
+            ...props.actionProps[btn].componentsProps,
+            onClick: () => {
+              if (['submit', 'reset'].includes(btn)) {
+                // 执行方法（如 reset 或 submit）
+                this[btn]()
+              }
+            },
+            ...props.actionProps[btn].componentsEvents,
+          },
+          {
+            default: () => props.actionProps[btn].text || '', // 确保插槽是函数形式
+          }
+        )
+      } else {
+        return btns[btn] // 默认按钮内容
+      }
+    })
+  }
+}
+
+    const generatorFooter = () => {
+      // 如果设置了showFooter为false，不显示footer
+      if (!props.showFooter) return
+      return h(
+        // @ts-ignore
+        resolveComponent('el-row'),
+        {
+          class: 'fly-form-footer',
+          justify: 'end',
+          ...props.footerRowProps,
+        },
+        { default: () => generatorFormButton() }
+      )
+    }
+
+    const generatorRow = (item: FlyFormTypes.FormItem) => {
+      const itemNodes: any = []
+      if (item.children && item.children.length > 0) {
+        item.children.forEach((it: FlyFormTypes.FormItem) => {
+          if (
+            (hasOwnPropertySafely(it, 'visitable') &&
+              it.visitable &&
+              it.visitable(props.status, this.formValues)) ||
+            (!hasOwnPropertySafely(it, 'visitable') &&
+              hasOwnPropertySafely(it, 'type'))
+          ) {
+            const formit = generatorCol(it)
+            itemNodes.push(formit)
+          }
+        })
+        itemNodes
+      }
+      return h(
+        // @ts-ignore
+        resolveComponent('el-row'),
+        {
+          ...item.props,
+          class: `fly-form-row ${item.class ? item.class : ''}`,
+          style: {
+            ...item.style,
+          },
+        },
+        { default: () => itemNodes }
+      )
+    }
+    const generatorCol: any = (item: FlyFormTypes.FormItem) => {
+      const colProps = item.colProps ? item.colProps : {}
+      const layout = h(
+        // @ts-ignore
+        resolveComponent('el-col'),
+        {
+          key: item.key,
+          xs: 12,
+          sm: 12,
+          md: 12,
+          lg: 6,
+          ...colProps,
+        },
+        { default: () => generatorFormItem(item) }
+      )
+      return layout
+    }
+    const generatorTitle = (item: FlyFormTypes.FormItem) => {
+      const props = item.props ? item.props : {}
+
+      return h(
+        resolveComponent('el-row'),
+        {
+          ...props,
+        },
+        [
+          h(
+            'h3',
+            {
+              class: `fly-form-title ${item.class ? item.class : ''}`,
+              style: {
+                ...item.style,
+              },
+            },
+            {
+              default: () => (item.slot ? item.slot : item.name),
+            }
+          ),
+        ]
+      )
+    }
+    const generatorForm = (data: any): any[] => {
+      if (!data) return []
+      const res = []
+      for (let i = 0; i < data.length; i++) {
+        const item = data[i]
+        if (['el-row', 'Title'].includes(item.type)) {
+          switch (item.type) {
+            case 'el-row':
+              // 目前没有支持深度嵌套的情况，如果要支持，需要在这里处理
+              // let formItem = generatorRow(item)
+              res.push(generatorRow(item))
+              break
+            case 'Title':
+              res.push(generatorTitle(item))
+              break
+            default:
+              break
+          }
+        } else {
+          //默认传入的表单配置根节点类型必须为Row，如果要兼容不穿Row节点的情况，需要在这里处理，包装一个Row节点
+          if (
+            (hasOwnPropertySafely(item, 'visitable') &&
+              item.visitable(status, this.formValues)) ||
+            !hasOwnPropertySafely(item, 'visitable')
+          ) {
+            const formItem =
+              props.inlineBlock || props.model == 'search'
+                ? generatorInlineBlock(item)
+                : generatorBlock(item)
+            res.push(formItem)
+          }
+        }
+      }
+
+      return res
+    }
+    const generatorInlineBlock = (item: FlyFormTypes.FormItem) => {
+      if (!hasOwnPropertySafely(item, 'hidden')) {
+        return generatorFormItem(item)
+      }
+    }
+    const generatorBlock = (item: FlyFormTypes.FormItem) => {
+      if (!hasOwnPropertySafely(item, 'hidden')) {
+        return h(
+          // @ts-ignore
+          resolveComponent('el-row'),
+          {
+            ...item.props,
+          },
+          { default: () => generatorFormItem(item) }
+        )
+      }
+    }
+    const generatorFormItem = (item: FlyFormTypes.FormItem) => {
+      const slotRender = item.tips
+        ? {
+            label: () => generatorTipsLabel(item),
+            default: () => generatorItem(item),
+          }
+        : { default: () => generatorItem(item) }
+
+      return h(
+        // @ts-ignore
+        resolveComponent('el-form-item'),
+        {
+          key: item.key,
+          prop: item.key,
+          label: item.name,
+          class: `fly-form-item ${item.class ? item.class : ''}`,
+          style: {
+            ...item.style,
+          },
+        },
+        slotRender
+      )
+    }
+    const generatorItem = (item: FlyFormTypes.FormItem) => {
+      switch (item.type) {
+        // 特殊组件需要在这里处理 例如select的结构需要包含option，类似的还有Radio/CheckBox
+        case 'el-select':
+          return generatorSelect(item)
+        case 'el-radio-group':
+          return generatorRadioGroup(item)
+        case 'el-checkbox-group':
+          return generatorCheckboxGroup(item)
+        default:
+          return generatorComponents(item)
+      }
+    }
+    const generatorComponents = (item: FlyFormTypes.FormItem) => {
+      if (
+        (props.strict && hasOwnPropertySafely(requireTypes, item.type)) ||
+        !props.strict
+      ) {
+        if (item.slot) {
+          return h(
+            // @ts-ignore
+            resolveComponent(item.type),
+            {
+              ...generatorDefaultProps(item),
+              ...generatorSourceData(item),
+              ...item.componentsProps,
+              attrs: { placeholder: item.placeholder },
+              ...generatorDefaultEvents(item),
+              ...item.componentsEvents,
+						},
+						{
+							default: () => item.slot(h), // 确保 slot 是函数形式
+						}
+          )
+        } else {
+          return h(resolveComponent(item.type), {
+            ...generatorDefaultProps(item),
+            ...generatorSourceData(item),
+            ...item.componentsProps,
+            attrs: { placeholder: item.placeholder },
+            ...generatorDefaultEvents(item),
+            ...item.componentsEvents,
+          })
+        }
+      } else {
+        return h(
+          'span',
+          {
+            style: {
+              color: 'red',
+            },
+          },
+
+          `Unaccepted component types '${item.type}'`
+        )
+      }
+    }
+    /**
+     * 生成默认的数据源 例如Casader\el-transfer
+     */
+    const generatorSourceData = (item: FlyFormTypes.FormItem) => {
+      const res: Record<string, any> = {}
+      const types = ['AutoComplete', 'el-transfer']
+      if (
+        types.includes(item.type) &&
+        hasOwnPropertySafely(this.sourceData, item.key)
+      ) {
+        res['data'] = this.sourceData[item.key]
+      } else if (
+        item.type == 'el-cascader' &&
+        hasOwnPropertySafely(this.sourceData, item.key)
+			) {
+        res['options'] = this.sourceData[item.key]
+      } else {
+        res['data'] = []
+      }
+      return res
+    }
+    const generatorRadioGroup = (item: FlyFormTypes.FormItem) => {
+      const self = this
+      return h(
+        // @ts-ignore
+        resolveComponent('el-radio-group'),
+        {
+          modelValue: this.formValues[item.key],
+          'onUpdate:modelValue': (val: any) => {
+            // 更新值
+            this.formValues[item.key] = val
+          },
+          ...item.componentsProps,
+          ...item.componentsEvents,
+        },
+        { default: () => generatorRadio(item, this.sourceData[item.key]) }
+      )
+    }
+    const generatorRadio = (propItem: FlyFormTypes.FormItem, data: any[]) => {
+
+      const radios = data && data.length > 0 ? data : propItem.options || []
+      const res = []
+      const { optionProps } = propItem
+      for (let i = 0; i < radios.length; i++) {
+        const item: Record<string, any> = radios[i]
+        const option = h(
+          // @ts-ignore
+          resolveComponent('el-radio'),
+          {
+            value:
+              (propItem.showValue && item[propItem.showValue]) || item.value,
+            ...optionProps,
+          },
+
+          { default: () => item[propItem.showName || 'label'] }
+        )
+        res.push(option)
+      }
+      return res
+    }
+    const generatorCheckboxGroup = (item: FlyFormTypes.FormItem) => {
+      const self = this
+      return h(
+        // @ts-ignore
+        resolveComponent('el-checkbox-group'),
+        {
+          modelValue: this.formValues[item.key],
+          'onUpdate:modelValue': (val: any) => {
+            // 更新值
+            this.formValues[item.key] = val
+          },
+          ...item.componentsProps,
+          ...item.componentsEvents,
+        },
+        {
+          default: () => generatorCheckbox(item, this.sourceData[item.key]),
+        }
+      )
+    }
+    const generatorCheckbox = (
+      propItem: FlyFormTypes.FormItem,
+      data: any[]
+    ) => {
+      const checkboxs = data && data.length > 0 ? data : propItem.options || []
+      const res = []
+      const { optionProps } = propItem
+      for (let i = 0; i < checkboxs.length; i++) {
+        const item = checkboxs[i]
+        const option = h(
+          // @ts-ignore
+          resolveComponent('el-checkbox'),
+          {
+            value:
+              (propItem.showValue && item[propItem.showValue]) || item.value,
+            ...optionProps,
+            key: (propItem.showValue && item[propItem.showValue]) || item.value,
+          },
+          {
+            default: () => item[propItem.showName || 'label'],
+          }
+        )
+        res.push(option)
+      }
+
+      return res
+    }
+
+    const generatorSelect = (item: FlyFormTypes.FormItem) => {
+      const selectedLabel = this.formValues[item.key]
+        ? this.sourceData[item.key].find(
+            (option: any) =>
+              option[item.showValue || 'value'] === this.formValues[item.key]
+          )?.[item.showName || 'label']
+        : ''
+				let defaultEvent = {
+						'onUpdate:modelValue': (val: any) => {
+            this.formValues[item.key] = val
+          },
+					}
+				if (item.effectKeys && item.effectKeys.length > 0) {
+					defaultEvent = {
+						'onUpdate:modelValue': (val: any) => {
+							this.formValues[item.key] = val
+							this.updateSources(item.effectKeys)
+						},
+					}
+				}
+      return h(
+        // @ts-ignore
+        resolveComponent('el-select'),
+        {
+          modelValue: this.formValues[item.key],
+					placeholder: item.placeholder,
+					...defaultEvent,
+          ...item.componentsProps,
+					...item.componentsEvents,
+
+        },
+        {
+          default: () =>
+            item.custom && item.custom.group
+              ? generatorOptionsGroup(item, this.sourceData[item.key])
+              : generatorOptions(item, this.sourceData[item.key]),
+          // 使用函数式插槽来渲染 label
+          label: () => h('span', selectedLabel || item.placeholder),
+        }
+      )
+    }
+    const generatorOptionsGroup = (
+      propItem: FlyFormTypes.FormItem,
+      data: any = {}
+    ) => {
+      const res = []
+      const ElOpGroupComponents = resolveComponent('el-option-group')
+      for (const key in data) {
+        const optionGroup = h(
+          // @ts-ignore
+          ElOpGroupComponents,
+          {
+            label: key,
+          },
+
+          { default: () => generatorOptions(propItem, data[key]) }
+        )
+        res.push(optionGroup)
+      }
+      return res
+    }
+    const generatorOptions = (
+      propItem: FlyFormTypes.FormItem,
+      data: any[] = []
+    ) => {
+      const res = []
+      for (let i = 0; i < data.length; i++) {
+        const item = data[i]
+        const option = h(
+          // @ts-ignore
+          resolveComponent('el-option'),
+          {
+            value: item[propItem.showValue || 'value'],
+          },
+          { default: () => item[propItem.showName || 'label'] }
+        )
+        res.push(option)
+      }
+      return res
+    }
+    const generatorDefaultProps = (item: FlyFormTypes.FormItem) => {
+      return {
+        modelValue: this.formValues[item.key],
+        'onUpdate:modelValue': (val: any) => {
+          // 更新值
+          this.formValues[item.key] = val
+        },
+        placeholder: item.placeholder,
+      }
+    }
+    const generatorTipsLabel = (item: FlyFormTypes.FormItem) => {
+      return h(
+        'span',
+        {
+          class: 'fly-form-item-tips',
+        },
+        [
+          item.name,
+          h(
+            // @ts-ignore
+            resolveComponent('el-popover'),
+            {
+              placement: 'top-start',
+              title: '提示',
+              width: 200,
+              trigger: 'hover',
+              ...item.tipLabelProps,
+              content: item.tips,
+            },
+            {
+              reference: () =>
+                h(
+                  // @ts-ignore
+                  resolveComponent('el-icon'),
+                  {
+                    class: 'fly-form-item-tips-icon',
+                  }, // @ts-ignore
+                  { default: () => h(resolveComponent('QuestionFilled')) }
+                ),
+            }
+          ),
+        ]
+      )
+    }
+		const generatorDefaultEvents = (item: FlyFormTypes.FormItem) => {
+			let defaultEvent = {
+						'onUpdate:modelValue': (val: any) => {
+            this.formValues[item.key] = val
+          },
+					}
+				if (item.effectKeys && item.effectKeys.length > 0) {
+					defaultEvent = {
+						'onUpdate:modelValue': (val: any) => {
+							this.formValues[item.key] = val
+							this.updateSources(item.effectKeys)
+						},
+					}
+				}
+      // 日期组件与其他组件的事件不同
+			if (['el-date-picker'].includes(item.type)) {
+				let event = {
+          'on-change': (val: any) => {
+						this.formValues[item.key] = val
+          },
+				}
+				if (item.effectKeys && item.effectKeys.length > 0) {
+					event = {
+						'on-change': (val: any) => {
+							this.formValues[item.key] = val
+							this.updateSources(item.effectKeys)
+						},
+					}
+				}
+        return event
+      } else {
+        return defaultEvent
+      }
+    }
+    const itemNodes = generatorForm(this.formContent)
+
+    const $formProps = props.formProps || {}
+    if (props.model == 'search') {
+      $formProps.inline = true
+    }
+    const FormNode = h(
+      // @ts-ignore
+      resolveComponent('ElForm'),
+      {
+        ref: 'FlyFormRef',
+        model: this.formValues,
+        rules: this.rules,
+        ...$formProps,
+        // 隐藏标签时默认标签位置为顶部
+        labelPosition: $formProps.hideLabel ? 'top' : $formProps.labelPosition,
+        ...props.formEvents,
+      },
+      {
+        default: () => [
+          ...itemNodes,
+          props.model == 'form' ? generatorFooter() : generatorFormButton(),
+        ],
+      }
+    )
+    // this.isFirstInit = false
+    return h(
+      'div',
+      {
+        class: `fly-form ${
+          props.formProps && props.formProps.hideLabel
+            ? 'fly-form-hide-label'
+            : ''
+        } ${(props.formProps && props.formProps.class) || ''} ${
+          props.model == 'search' ? 'fly-search' : ''
+        }`,
+      },
+
+      FormNode
+    )
+  },
+})
+</script>

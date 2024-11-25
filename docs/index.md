@@ -9,7 +9,7 @@ hero:
   text: "轻量化表单组件"
   tagline: "减少的不必要的体力劳作，摸鱼更快"
 
-  image: /public/logo.svg
+  image: /logo.svg
 	actions:
     - theme: brand
       text: 安装

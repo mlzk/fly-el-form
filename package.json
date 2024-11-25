@@ -38,7 +38,7 @@
 		"dev": "vite",
 		"build": "run-p type-check \"build-only {@}\" --",
 		"build:lib": "vite build --config vite.lib.config.ts",
-		"docs:build": "pnpm run register:components && vitepress build docs --base /fly-el-form/",
+		"docs:build": "npm run register:components && vitepress build docs --base /fly-el-form/",
 		"preview": "vite preview",
 		"test:unit": "vitest",
 		"build-only": "vite build",

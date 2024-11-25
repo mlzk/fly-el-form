@@ -1,7 +1,7 @@
 # Fly-El-Form
 element-plus的 JSON To Form 轻量化表单组件
 
-doc文档: [https://mlzk.github.io/way-el-form/](https://mlzk.github.io/way-el-form/)
+doc文档: [https://mlzk.github.io/fly-el-form/](https://mlzk.github.io/fly-el-form/)
 
 
 ## Install

@@ -1,6 +1,7 @@
 .DS_Store
 node_modules
 /dist
+/libs
 dist
 scripts/docsearch-scraper
 docs/.vitepress/cache

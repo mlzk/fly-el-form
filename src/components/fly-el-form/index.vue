@@ -361,7 +361,6 @@ export default defineComponent({
 
   methods: {
     async submit() {
-
       // @ts-ignore
       const formRef: FormInstance = this.$refs.FlyFormRef
       await formRef.validate((valid: any, errors: any) => {
@@ -394,6 +393,31 @@ export default defineComponent({
         }
       })
     },
+    /**
+     * 获取组件实例
+     * @param key 生成component的key 同时会填入ref 通过this.$refs[key]调用
+     */
+    getFormRef(key: string) {
+			try {
+				// @ts-ignore
+        const formRef: FormInstance = this.$refs.FlyFormRef
+        return formRef
+      } catch (error) {
+        console.error(error)
+      }
+    },
+    getComponentRefByKey(key: string) {
+			if (key && typeof key === 'string') {
+				try {
+					return this.$refs[key]
+				} catch (error) {
+					console.error(error)
+				}
+			} else {
+				console.error('请传入正确的key')
+				return false
+			}
+    },
     reset() {
       // @ts-ignore
       const formRef: FormInstance = this.$refs.FlyFormRef
@@ -408,13 +432,13 @@ export default defineComponent({
         }
       })
     },
-    setFormData(data: any) {
+    setFormValues(data: any) {
       // @ts-ignore
       const formRef: FormInstance = this.$refs.FlyFormRef
       if (data) {
         formRef.resetFields()
         this.$nextTick(() => {
-          if (this.$refs['formValues']) {
+          if (formRef) {
             Object.keys(data).forEach((key) => {
               if (hasOwnPropertySafely(this.formValues, key)) {
                 this.formValues[key] = data[key]
@@ -425,9 +449,43 @@ export default defineComponent({
           }
         })
       }
+		},
+		 /**
+		 * 更新数据源
+		 * @param keys
+		 */
+		 async updateSource(updateArray: any) {
+			 if (!updateArray) return console.error('请传入正确的更新数据')
+			let keys: string[] = []
+      if (Array.isArray(updateArray)) {
+				for (let i = 0; i < updateArray.length; i++) {
+					let item = updateArray[i]
+					if(hasOwnPropertySafely(item,'key')){
+						if(hasOwnPropertySafely(item,'value')){
+							this.sourceData[item.key] = item.value
+						} else {
+							keys.push(item.key)
+						}
+					}else{
+						console.error('请传入正确的更新数据,错误的数据:',item)
+					}
+				}
+				if(keys.length > 0){
+					await this.updateRequestSource(keys)
+				} else {
+					this.$forceUpdate()
+				}
+      } else {
+				console.error('请传入正确的更新数据')
+      }
+
+
     },
-    // 手动更新某些数据源
-    async updateSources(keys: string | string[]) {
+    /**
+		 * 更新数据源
+		 * @param keys
+		 */
+    async updateRequestSource(keys?: string | string[]) {
       if (!keys) return
       let updateRequests: Promise<any>[] = []
       if (Array.isArray(keys)) {
@@ -438,7 +496,7 @@ export default defineComponent({
         updateRequests = [this.requests[keys]()]
       }
       if (updateRequests.length === 0) {
-        return
+        return console.warn('请传入正确的keys')
       }
       await Promise.allSettled(updateRequests).catch((err) => {
         console.warn(err)
@@ -448,7 +506,7 @@ export default defineComponent({
     /**
      * 设置表单值
      */
-    setFormValue(key: string, value: any) {
+    setKeyValue(key: string, value: any) {
       if (hasOwnPropertySafely(this.formValues, key)) {
         this.formValues[key] = value
       } else {
@@ -475,7 +533,6 @@ export default defineComponent({
     },
   },
   render(props: any) {
-
     const generatorFormButton = () => {
       return h(
         // @ts-ignore
@@ -486,66 +543,67 @@ export default defineComponent({
         { default: () => generatorFooterButton() }
       )
     }
-		const generatorFooterButton = () => {
-  const btns: FlyFormTypes.VNode = {
-    reset: h(
-      resolveComponent('el-button'),
-      {
-        type: 'default',
-        onClick: () => {
-          this.reset()
-        },
-      },
-      {
-        default: () => '重置', // 改为函数形式插槽
-      }
-    ),
-    submit: h(
-      resolveComponent('el-button'),
-      {
-        type: 'primary',
-        onClick: () => {
-          this.submit()
-        },
-      },
-      {
-        default: () =>
-          props.model === 'search'
-            ? '搜索'
-            : props.status === 'create'
-            ? '保存'
-            : '修改',
-      }
-    ),
-  }
-
-  if (props.action) {
-    return props.action.map((btn: string) => {
-      // 如果设置了 actionProps
-      if (hasOwnPropertySafely(props.actionProps, btn)) {
-        return h(
+    const generatorFooterButton = () => {
+      const btns: FlyFormTypes.VNode = {
+        reset: h(
           resolveComponent('el-button'),
           {
             type: 'default',
-            ...props.actionProps[btn].componentsProps,
             onClick: () => {
-              if (['submit', 'reset'].includes(btn)) {
-                // 执行方法（如 reset 或 submit）
-                this[btn]()
-              }
+              this.reset()
             },
-            ...props.actionProps[btn].componentsEvents,
           },
           {
-            default: () => props.actionProps[btn].text || '', // 确保插槽是函数形式
+            default: () => '重置', // 改为函数形式插槽
           }
-        )
-      } else {
-        return btns[btn] // 默认按钮内容
+        ),
+        submit: h(
+          resolveComponent('el-button'),
+          {
+            type: 'primary',
+            onClick: () => {
+              this.submit()
+            },
+          },
+          {
+            default: () =>
+              props.model === 'search'
+                ? '搜索'
+                : props.status === 'create'
+                ? '保存'
+                : '修改',
+          }
+        ),
       }
-    })
-  }
-}
+
+      if (props.action) {
+        return props.action.map((btn: string) => {
+          // 如果设置了 actionProps
+          if (hasOwnPropertySafely(props.actionProps, btn)) {
+            return h(
+              resolveComponent('el-button'),
+              {
+                type: 'default',
+                ...props.actionProps[btn].componentsProps,
+                onClick: () => {
+                  if (['submit', 'reset'].includes(btn)) {
+										// 执行方法（如 reset 或 submit）
+										// @ts-ignore
+                    this[btn]()
+                  }
+                },
+                ...props.actionProps[btn].componentsEvents,
+              },
+              {
+                default: () => props.actionProps[btn].text || '', // 确保插槽是函数形式
+              }
+            )
+          } else {
+            return btns[btn] // 默认按钮内容
+          }
+        })
+      }
+    }
 
     const generatorFooter = () => {
       // 如果设置了showFooter为false，不显示footer
@@ -558,7 +616,7 @@ export default defineComponent({
           justify: 'end',
           ...props.footerRowProps,
         },
-        { default: () => generatorFormButton() }
+        { default: () => generatorFooterButton() }
       )
     }
 
@@ -738,10 +796,10 @@ export default defineComponent({
               attrs: { placeholder: item.placeholder },
               ...generatorDefaultEvents(item),
               ...item.componentsEvents,
-						},
-						{
-							default: () => item.slot(h), // 确保 slot 是函数形式
-						}
+            },
+            {
+              default: () => item.slot(h), // 确保 slot 是函数形式
+            }
           )
         } else {
           return h(resolveComponent(item.type), {
@@ -780,7 +838,7 @@ export default defineComponent({
       } else if (
         item.type == 'el-cascader' &&
         hasOwnPropertySafely(this.sourceData, item.key)
-			) {
+      ) {
         res['options'] = this.sourceData[item.key]
       } else {
         res['data'] = []
@@ -805,7 +863,6 @@ export default defineComponent({
       )
     }
     const generatorRadio = (propItem: FlyFormTypes.FormItem, data: any[]) => {
-
       const radios = data && data.length > 0 ? data : propItem.options || []
       const res = []
       const { optionProps } = propItem
@@ -873,36 +930,37 @@ export default defineComponent({
       return res
     }
 
-    const generatorSelect = (item: FlyFormTypes.FormItem) => {
+		const generatorSelect = (item: FlyFormTypes.FormItem) => {
+			// @ts-ignore
+			const formRef=this
       const selectedLabel = this.formValues[item.key]
         ? this.sourceData[item.key].find(
             (option: any) =>
               option[item.showValue || 'value'] === this.formValues[item.key]
           )?.[item.showName || 'label']
         : ''
-				let defaultEvent = {
-						'onUpdate:modelValue': (val: any) => {
+      let defaultEvent = {
+        'onUpdate:modelValue': (val: any) => {
+          this.formValues[item.key] = val
+        },
+      }
+      if (item.effectKeys && item.effectKeys.length > 0) {
+        defaultEvent = {
+          'onUpdate:modelValue': (val: any) => {
             this.formValues[item.key] = val
+            formRef.updateRequestSource(item.effectKeys)
           },
-					}
-				if (item.effectKeys && item.effectKeys.length > 0) {
-					defaultEvent = {
-						'onUpdate:modelValue': (val: any) => {
-							this.formValues[item.key] = val
-							this.updateSources(item.effectKeys)
-						},
-					}
-				}
+        }
+      }
       return h(
         // @ts-ignore
         resolveComponent('el-select'),
         {
           modelValue: this.formValues[item.key],
-					placeholder: item.placeholder,
-					...defaultEvent,
+          placeholder: item.placeholder,
+          ...defaultEvent,
           ...item.componentsProps,
-					...item.componentsEvents,
-
+          ...item.componentsEvents,
         },
         {
           default: () =>
@@ -955,6 +1013,7 @@ export default defineComponent({
     }
     const generatorDefaultProps = (item: FlyFormTypes.FormItem) => {
       return {
+        ref: item.key,
         modelValue: this.formValues[item.key],
         'onUpdate:modelValue': (val: any) => {
           // 更新值
@@ -997,35 +1056,35 @@ export default defineComponent({
         ]
       )
     }
-		const generatorDefaultEvents = (item: FlyFormTypes.FormItem) => {
-			let defaultEvent = {
-						'onUpdate:modelValue': (val: any) => {
+    const generatorDefaultEvents = (item: FlyFormTypes.FormItem) => {
+      let defaultEvent = {
+        'onUpdate:modelValue': (val: any) => {
+          this.formValues[item.key] = val
+        },
+      }
+      if (item.effectKeys && item.effectKeys.length > 0) {
+        defaultEvent = {
+          'onUpdate:modelValue': (val: any) => {
+            this.formValues[item.key] = val
+            this.updateRequestSource(item.effectKeys)
+          },
+        }
+      }
+      // 日期组件与其他组件的事件不同
+      if (['el-date-picker'].includes(item.type)) {
+        let event = {
+          'on-change': (val: any) => {
             this.formValues[item.key] = val
           },
-					}
-				if (item.effectKeys && item.effectKeys.length > 0) {
-					defaultEvent = {
-						'onUpdate:modelValue': (val: any) => {
-							this.formValues[item.key] = val
-							this.updateSources(item.effectKeys)
-						},
-					}
-				}
-      // 日期组件与其他组件的事件不同
-			if (['el-date-picker'].includes(item.type)) {
-				let event = {
-          'on-change': (val: any) => {
-						this.formValues[item.key] = val
-          },
-				}
-				if (item.effectKeys && item.effectKeys.length > 0) {
-					event = {
-						'on-change': (val: any) => {
-							this.formValues[item.key] = val
-							this.updateSources(item.effectKeys)
-						},
-					}
-				}
+        }
+        if (item.effectKeys && item.effectKeys.length > 0) {
+          event = {
+            'on-change': (val: any) => {
+              this.formValues[item.key] = val
+              this.updateRequestSource(item.effectKeys)
+            },
+          }
+        }
         return event
       } else {
         return defaultEvent
@@ -1052,11 +1111,10 @@ export default defineComponent({
       {
         default: () => [
           ...itemNodes,
-          props.model == 'form' ? generatorFooter() : generatorFormButton(),
+          props.model == 'form' ? generatorFooter() : generatorFooterButton(),
         ],
       }
     )
-    // this.isFirstInit = false
     return h(
       'div',
       {

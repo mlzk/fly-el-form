@@ -1,33 +1,28 @@
 # Fly-El-Form
+element-plus的 JSON To Form 轻量化表单组件
 
-json to form component
+doc文档: [https://mlzk.github.io/way-el-form/](https://mlzk.github.io/way-el-form/)
 
 
-## Project Setup
+## Install
 
-```sh
-pnpm install
+```bash
+
+npm install fly-el-form --save
+
 ```
 
-### Compile and Hot-Reload for Development
+## Usage
 
-```sh
-pnpm dev
+```js
+// main.js
+// ...引入vue和iview之后
+// 引入组件库
+import FlyElForm from "fly-el-form";
+import "fly-el-form/lib/style.css";
+
+Vue.use(FlyElForm);
 ```
 
-### Type-Check, Compile and Minify for Production
-
-```sh
-pnpm build
-```
 
 
-```sh
-pnpm test:unit
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-pnpm lint
-```

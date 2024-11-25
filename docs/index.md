@@ -2,12 +2,12 @@
 layout: home
 
 title: Fly-El-Form
-titleTemplate: 基于 element-plus的 JSON To Form 轻量化表单组件。
+titleTemplate:  element-plus的 JSON To Form 轻量化表单组件。
 
 hero:
   name: "Fly-El-Form"
-  text: "基于 element-plus"
-  tagline: " JSON To Form 轻量化表单组件，常见企业后台或中台场景可以减少大量的重复工作和代码量"
+  text: "轻量化表单组件"
+  tagline: "减少的不必要的体力劳作，摸鱼更快"
 
   image: /logo.svg
 	actions:
@@ -26,11 +26,11 @@ hero:
 npm install fly-el-form --save
 ```
 
-### 全局引入
+### Import 全局引入
 
 ```js
 // main.js
-// ...引入vue和ElementPlus之后
+// ...引入vue和ElementPlus之后 这里需要 全局引入ElementPlus和@element-plus/icons-vue
 // 引入组件库
 import FlyElForm from "fly-el-form";
 Vue.use(FlyElForm);
@@ -38,18 +38,24 @@ Vue.use(FlyElForm);
 ```
 ## Usage 使用
 
+配置好form，在模板中使用
+
+```vue 
+<template>
+	<fly-el-form model="form" :form="originData" />
+</template>
+
+```
+## Example 示例
 :::demo
 
 ```vue
 <template>
 	<fly-el-form
-		class="my-edit-form"
 		model="form"
 		:form-props="formProps"
 		:form="originData"
-		:action-props="actionProps"
-		:show-footer="true"
-		enable-spin
+		@submit="handleSubmit"
 	/>
 </template>
 
@@ -122,30 +128,11 @@ const formProps = ref({
 	inline: true,
 	labelPosition: 'top',
 })
-const actionProps = ref({
-	submit: {
-		componentsProps: {
-			type: 'primary',
-			icon: 'search',
-		},
-		text: '检索',
-	},
-	reset: {
-		componentsProps: {
-			type: 'default',
-			icon: 'refresh',
-		},
-		text: '重置',
-	},
-})
 
 const handleSubmit = (form: any) => {
-	console.log('handleSubmit')
 	console.log(form)
 }
-const handleReset = () => {
-	console.log('handleReset')
-}
+
 </script>
 ```
 

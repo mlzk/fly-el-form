@@ -17,11 +17,11 @@ export default defineConfig({
 		// https://vitepress.dev/reference/default-theme-config
 		nav: [
 			{ text: '主页', link: '/' },
-			{ text: 'API', link: '/guide/api', activeMatch: '^/guide/' },
+			{ text: 'API', link: '/api/index', activeMatch: '^/api/' },
 			{
-				text: '使用',
-				link: '/components/mode',
-				activeMatch: '^/components/',
+				text: '指南',
+				link: '/guide/mode',
+				activeMatch: '^/guide/',
 			},
 		],
 

@@ -3,7 +3,7 @@
 
 ```bash
 
-npm install way-el-form --save
+npm install fly-el-form --save
 
 ```
 
@@ -13,9 +13,9 @@ npm install way-el-form --save
 // main.js
 // ...引入vue和iview之后
 // 引入组件库
-import WayElForm from "way-el-form";
-import "way-el-form/dist/way-el-form.css";
-Vue.use(WayElForm);
+import FlyElForm from "fly-el-form";
+import "fly-el-form/dist/fly-el-form.css";
+Vue.use(FlyElForm);
 ```
 
 ## run demo

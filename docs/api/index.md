@@ -205,13 +205,14 @@ element-plus row 的全量配置
 
 ## Method
 
-| 方法名称      | 说明         | 参数         | 返回值                                                                     |
-| :------------ | :----------- | :----------- | :------------------------------------------------------------------------- |
-| submit        | 提交         |              |                                                                            |
-| reset         | 重置         |              |                                                                            |
-| setFormData   | 设置表单数据 | form         |                                                                            |
-| setFormValues | 设置表单数据 | (key, value) |                                                                            |
-| getFormValues | 获取表单数据 |              |                                                                            |
-| updateSources | 更新数据源   | [key]        |                                                                            |
-| formRef       | 获取表单实例 |              |                                                                            |
-| getThis       | 获取表单实例 | key          | 字段 key 值如果传入则返回该 key 值的 ref 对象，为空则返回 form 组件的 this |
+| 方法名称         | 说明                     | 参数         | 返回值                                                                     |
+| :--------------- | :----------------------- | :----------- | :------------------------------------------------------------------------- |
+| submit           | 触发校验                 |              |                                                                            |
+| reset            | 重置表单校验摒并清空表单 |              |                                                                            |
+| setFormValues    | 设置表单值（表单复现）   | form         |                                                                            |
+| setKeyValue      | 设置表单某个key的数据    | (key, value) |                                                                            |
+| getFormValues    | 获取表单数据             |              |                                                                            |
+| updateSource | 更新数据源              | [{key:String,value:[]}]        |                                                                            |
+| updateRequestSource | 更新配置接口的数据源               | [key] ｜ key     |                                                                            |
+| getFormRef          | 获取表单实例             |         |返回 form 组件的 ref 实例 |
+| getComponentRefByKey          | 获取表单组件实例             | key          |返回该 key 值的  ref 实例  |

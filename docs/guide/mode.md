@@ -4,6 +4,7 @@
 
 表头检索筛选场景
 
+### 示例
 :::demo
 
 ```vue
@@ -61,6 +62,8 @@ const handleReset = () => {
 ### 表单模式
 
 配合`el-row`,`el-col`实现表单的排版
+
+### 示例
 
 :::demo
 

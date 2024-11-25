@@ -50,6 +50,11 @@ export default {
 
   .content {
     padding-left: 12px;
+		&::v-deep(.el-button){
+			margin-bottom: 5px;
+			margin-left: 0px;
+			margin-right: 5px;
+		}
   }
 }
 </style>

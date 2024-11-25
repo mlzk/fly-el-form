@@ -44,29 +44,6 @@
 			width: 100% !important;
 	}
 
-	// 项目下的fix样式
-	// .ivu-input-number-input-wrap {
-	//     height: 25px !important;
-	// }
-
-	// .ivu-input-number-handler-wrap {
-	//     height: 22px !important;
-	//     top: 2px;
-	// }
-
-	// .ivu-input-number {
-	//     // background-color: #03102c;
-	//     width: 100% !important;
-	//     background: none;
-	//     border: 0px !important;
-	//     border-radius: 0px !important;
-	//     height: 26px !important;
-	//     line-height: 24px !important;
-	// }
-
-	// .ivu-input-number-handler {
-	//     height: 11px;
-	// }
 
 	.ivu-select-input {
 			background-color: #041538 !important;
@@ -151,7 +128,7 @@
 }
 
 .fly-form-title {
-	margin: 5px 0;
+	margin: 5px 0!important;
 }
 
 .fly-form-buttons {

@@ -38,15 +38,15 @@
 		"dev": "vite",
 		"build": "run-p type-check \"build-only {@}\" --",
 		"build:lib": "vite build --config vite.lib.config.ts",
-		"docs:build": "vitepress build docs",
+		"docs:build": "pnpm run register:components && vitepress build docs --base /fly-el-form/",
 		"preview": "vite preview",
 		"test:unit": "vitest",
 		"build-only": "vite build",
 		"type-check": "vue-tsc --build --force",
 		"lint": "eslint . --fix",
 		"format": "prettier --write src/",
-		"docs:dev": "vitepress dev docs",
-		"docs:build": "vitepress build docs",
+		"docs:serve": "vitepress serve docs",
+		"register:components": "vitepress-rc",
 		"docs:preview": "vitepress preview docs"
 	},
 	"dependencies": {

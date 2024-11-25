@@ -13,6 +13,8 @@ export default defineConfig({
 	vite: {
 		plugins: [demoblockVitePlugin()],
 	},
+	base: process.env.BASE || '/',
+	head: [['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }]],
 	themeConfig: {
 		// https://vitepress.dev/reference/default-theme-config
 		nav: [

@@ -33,6 +33,8 @@ npm install fly-el-form --save
 // ...引入vue和ElementPlus之后 这里需要 全局引入ElementPlus和@element-plus/icons-vue
 // 引入组件库
 import FlyElForm from "fly-el-form";
+import 'fly-el-form/lib/style.css';
+
 Vue.use(FlyElForm);
 
 ```

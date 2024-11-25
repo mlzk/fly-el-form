@@ -1,12 +1,12 @@
 {
 	"name": "fly-el-form",
-	"version": "0.0.2",
+	"version": "0.0.4",
 	"private": false,
 	"author": "flycat",
 	"type": "module",
 	"description": "A Vue 3 library for building dynamic forms with Element Plus",
-	"main": "lib/my-vue-lib.umd.js",
-	"module": "lib/my-vue-lib.es.js",
+	"main": "lib/fly-el-form.umd.js",
+	"module": "lib/fly-el-form.es.js",
 	"files": [
 		"lib"
 	],
@@ -45,8 +45,7 @@
 		"type-check": "vue-tsc --build --force",
 		"lint": "eslint . --fix",
 		"format": "prettier --write src/",
-		"docs:dev": "vitepress serve docs",
-		"docs:serve": "vitepress serve docs",
+		"docs:dev": "vitepress dev docs",
 		"register:components": "vitepress-rc",
 		"docs:preview": "vitepress preview docs"
 	},

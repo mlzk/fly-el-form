@@ -14,7 +14,7 @@ import {
   resolveComponent,
 } from 'vue'
 export default defineComponent({
-  name: 'FlyForm',
+  name: 'FlyElForm',
   props: {
     // 模式 默认form表单模式 search为搜索条模式
     model: {

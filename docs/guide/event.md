@@ -46,6 +46,9 @@ const originData = ref([
 		key: 'formItemName',
 		required: true,
 		value: '',
+		style: {
+			width: '300px',
+		}
 	},
 ])
 

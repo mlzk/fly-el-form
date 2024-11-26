@@ -398,8 +398,8 @@ export default defineComponent({
      * @param key 生成component的key 同时会填入ref 通过this.$refs[key]调用
      */
     getFormRef(key: string) {
-			try {
-				// @ts-ignore
+      try {
+        // @ts-ignore
         const formRef: FormInstance = this.$refs.FlyFormRef
         return formRef
       } catch (error) {
@@ -407,16 +407,16 @@ export default defineComponent({
       }
     },
     getComponentRefByKey(key: string) {
-			if (key && typeof key === 'string') {
-				try {
-					return this.$refs[key]
-				} catch (error) {
-					console.error(error)
-				}
-			} else {
-				console.error('请传入正确的key')
-				return false
-			}
+      if (key && typeof key === 'string') {
+        try {
+          return this.$refs[key]
+        } catch (error) {
+          console.error(error)
+        }
+      } else {
+        console.error('请传入正确的key')
+        return false
+      }
     },
     reset() {
       // @ts-ignore
@@ -449,42 +449,40 @@ export default defineComponent({
           }
         })
       }
-		},
-		 /**
-		 * 更新数据源
-		 * @param keys
-		 */
-		 async updateSource(updateArray: any) {
-			 if (!updateArray) return console.error('请传入正确的更新数据')
-			let keys: string[] = []
-      if (Array.isArray(updateArray)) {
-				for (let i = 0; i < updateArray.length; i++) {
-					let item = updateArray[i]
-					if(hasOwnPropertySafely(item,'key')){
-						if(hasOwnPropertySafely(item,'value')){
-							this.sourceData[item.key] = item.value
-						} else {
-							keys.push(item.key)
-						}
-					}else{
-						console.error('请传入正确的更新数据,错误的数据:',item)
-					}
-				}
-				if(keys.length > 0){
-					await this.updateRequestSource(keys)
-				} else {
-					this.$forceUpdate()
-				}
-      } else {
-				console.error('请传入正确的更新数据')
-      }
-
-
     },
     /**
-		 * 更新数据源
-		 * @param keys
-		 */
+     * 更新数据源
+     * @param keys
+     */
+    async updateSource(updateArray: any) {
+      if (!updateArray) return console.error('请传入正确的更新数据')
+      let keys: string[] = []
+      if (Array.isArray(updateArray)) {
+        for (let i = 0; i < updateArray.length; i++) {
+          let item = updateArray[i]
+          if (hasOwnPropertySafely(item, 'key')) {
+            if (hasOwnPropertySafely(item, 'value')) {
+              this.sourceData[item.key] = item.value
+            } else {
+              keys.push(item.key)
+            }
+          } else {
+            console.error('请传入正确的更新数据,错误的数据:', item)
+          }
+        }
+        if (keys.length > 0) {
+          await this.updateRequestSource(keys)
+        } else {
+          this.$forceUpdate()
+        }
+      } else {
+        console.error('请传入正确的更新数据')
+      }
+    },
+    /**
+     * 更新数据源
+     * @param keys
+     */
     async updateRequestSource(keys?: string | string[]) {
       if (!keys) return
       let updateRequests: Promise<any>[] = []
@@ -584,15 +582,15 @@ export default defineComponent({
               resolveComponent('el-button'),
               {
                 type: 'default',
-                ...props.actionProps[btn].componentsProps,
+                ...props.actionProps[btn].componentProps,
                 onClick: () => {
                   if (['submit', 'reset'].includes(btn)) {
-										// 执行方法（如 reset 或 submit）
-										// @ts-ignore
+                    // 执行方法（如 reset 或 submit）
+                    // @ts-ignore
                     this[btn]()
                   }
                 },
-                ...props.actionProps[btn].componentsEvents,
+                ...props.actionProps[btn].componentEvents,
               },
               {
                 default: () => props.actionProps[btn].text || '', // 确保插槽是函数形式
@@ -641,7 +639,8 @@ export default defineComponent({
         // @ts-ignore
         resolveComponent('el-row'),
         {
-          ...item.props,
+          gutter: 10,
+          ...item.componentProps,
           class: `fly-form-row ${item.class ? item.class : ''}`,
           style: {
             ...item.style,
@@ -656,19 +655,19 @@ export default defineComponent({
         // @ts-ignore
         resolveComponent('el-col'),
         {
-          key: item.key,
-          xs: 12,
+          xs: 24,
           sm: 12,
           md: 12,
           lg: 6,
           ...colProps,
+					key: item.key,
         },
         { default: () => generatorFormItem(item) }
       )
       return layout
     }
     const generatorTitle = (item: FlyFormTypes.FormItem) => {
-      const props = item.props ? item.props : {}
+      const props = item.componentProps ? item.componentProps : {}
 
       return h(
         resolveComponent('el-row'),
@@ -792,10 +791,10 @@ export default defineComponent({
             {
               ...generatorDefaultProps(item),
               ...generatorSourceData(item),
-              ...item.componentsProps,
+              ...item.componentProps,
               attrs: { placeholder: item.placeholder },
               ...generatorDefaultEvents(item),
-              ...item.componentsEvents,
+              ...item.componentEvents,
             },
             {
               default: () => item.slot(h), // 确保 slot 是函数形式
@@ -805,10 +804,10 @@ export default defineComponent({
           return h(resolveComponent(item.type), {
             ...generatorDefaultProps(item),
             ...generatorSourceData(item),
-            ...item.componentsProps,
+            ...item.componentProps,
             attrs: { placeholder: item.placeholder },
             ...generatorDefaultEvents(item),
-            ...item.componentsEvents,
+            ...item.componentEvents,
           })
         }
       } else {
@@ -856,8 +855,8 @@ export default defineComponent({
             // 更新值
             this.formValues[item.key] = val
           },
-          ...item.componentsProps,
-          ...item.componentsEvents,
+          ...item.componentProps,
+          ...item.componentEvents,
         },
         { default: () => generatorRadio(item, this.sourceData[item.key]) }
       )
@@ -894,8 +893,8 @@ export default defineComponent({
             // 更新值
             this.formValues[item.key] = val
           },
-          ...item.componentsProps,
-          ...item.componentsEvents,
+          ...item.componentProps,
+          ...item.componentEvents,
         },
         {
           default: () => generatorCheckbox(item, this.sourceData[item.key]),
@@ -930,9 +929,9 @@ export default defineComponent({
       return res
     }
 
-		const generatorSelect = (item: FlyFormTypes.FormItem) => {
-			// @ts-ignore
-			const formRef=this
+    const generatorSelect = (item: FlyFormTypes.FormItem) => {
+      // @ts-ignore
+      const formRef = this
       const selectedLabel = this.formValues[item.key]
         ? this.sourceData[item.key].find(
             (option: any) =>
@@ -959,8 +958,8 @@ export default defineComponent({
           modelValue: this.formValues[item.key],
           placeholder: item.placeholder,
           ...defaultEvent,
-          ...item.componentsProps,
-          ...item.componentsEvents,
+          ...item.componentProps,
+          ...item.componentEvents,
         },
         {
           default: () =>

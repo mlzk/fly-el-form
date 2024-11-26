@@ -95,7 +95,7 @@ originData.value = [
 				source: {
 					data: [
 						{
-							label: 'Es',
+							label: '产品一',
 							value: 1,
 						},
 					],
@@ -110,7 +110,7 @@ originData.value = [
 			{
 				name: '型号',
 				type: 'el-input',
-				componentsProps: {
+				componentProps: {
 					disabled: true,
 				},
 				key: 'certificationClientAddress',

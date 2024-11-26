@@ -39,7 +39,7 @@
 	required: true,
 	type: 'el-input-number',
 	key: 'batchCount',
-	componentsProps: {
+	componentProps: {
 		min: 1,
 	},
 	value: 1,
@@ -76,9 +76,10 @@ originData.value = [
 	{
 		name: '自定义校验',
 		required: true,
+		tips: '只能提交正整数',
 		type: 'el-input-number',
 		key: 'batchCount',
-		componentsProps: {
+		componentProps: {
 			min: 1,
 		},
 		value: 1,
@@ -93,6 +94,7 @@ originData.value = [
 	},
 	{
 		name: '手机号',
+		tips: '正则校验手机号',
 		required: true,
 		type: 'el-input',
 		key: 'phone',

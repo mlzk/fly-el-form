@@ -10,6 +10,7 @@
 		key: 'key',
 		type: 'el-select',
 		name: '名称',
+		requiredType: 'number',
 		source: {
 			data: [
 				{
@@ -23,7 +24,7 @@
 			],
 		},
 		// 或者通过组件的props进行设置
-		// componentsProps: {
+		// componentProps: {
 		// 	data: [],
 		// }
 		required: true,
@@ -54,6 +55,7 @@ originData.value = [
 		key: 'key',
 		type: 'el-select',
 		name: '名称',
+		requiredType: 'number',
 		source: {
 			data: [
 				{
@@ -199,7 +201,7 @@ const handleReset = () => {
 
 ::: warning
 
-如果在`componentsEvents`自定义`on-change`事件,该配置无效请手动使用ref调用`updateSource`方法主动触发数据源更新
+如果在`componentEvents`自定义`on-change`事件,该配置无效请手动使用ref调用`updateSource`方法主动触发数据源更新
 
 :::
 示例
@@ -213,7 +215,7 @@ const handleReset = () => {
 		required: true,
 		requiredType: 'number',
 		effectKeys: ['type'],
-		componentsProps: {
+		componentProps: {
 			clearable: true,
 		},
 		source: {
@@ -308,7 +310,7 @@ originData.value = [
 		required: true,
 		requiredType: 'number',
 		effectKeys: ['type'],
-		componentsProps: {
+		componentProps: {
 			clearable: true,
 		},
 		source: {

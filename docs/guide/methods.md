@@ -108,8 +108,8 @@ const reset = () => {
 }
 const setFormValues = () => {
 	formRef.value.setFormValues({
-		taskName: '这是通过方法设置的表单值',
-		certificationClientName: 1,
+		input: '这是通过方法设置的表单值',
+		select: 1,
 	})
 }
 const setKeyValue = () => {
@@ -129,7 +129,7 @@ const getFormRef = (key?: string) => {
 	})
 }
 const focus = () => {
-	const componentRef = formRef.value.getComponentRefByKey('taskName')
+	const componentRef = formRef.value.getComponentRefByKey('input')
 	componentRef.focus()
 }
 const updateSource = () => {

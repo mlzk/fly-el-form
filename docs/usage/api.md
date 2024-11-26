@@ -28,9 +28,9 @@
 | value            | any     |          | 表单的默认值                                                                                                                                                                       |
 | rules            | array   |          | 表单的校验规则                                                                                                                                                                     |
 | required         | boolean |          | 表单是否必填 rules 的快捷设置                                                                                                                                                      |
-| effectKeys       | array   |          | 组件值发生变化之后影响的字段数据源例如 on-change 之后触发effectKeys中联动组件key的数据源刷新(如果在componentsEvents自定义on-change事件该配置无效请手动使用ref方法调用updateSource) |
-| componentsProps  | object  |          | 表单组件的 props 配置，如 'filterable'、'clearable' 等                                                                                                                             |
-| componentsEvents | object  |          | 表单组件的事件，如 'on-change'、'on-input' 等                                                                                                                                      |
+| effectKeys       | array   |          | 组件值发生变化之后影响的字段数据源例如 on-change 之后触发effectKeys中联动组件key的数据源刷新(如果在componentEvents自定义on-change事件该配置无效请手动使用ref方法调用updateSource) |
+| componentProps  | object  |          | 表单组件的 props 配置，如 'filterable'、'clearable' 等                                                                                                                             |
+| componentEvents | object  |          | 表单组件的事件，如 'on-change'、'on-input' 等                                                                                                                                      |
 | source           | object  |          | 表单项的数据源，包含 API 接口、接口参数、处理函数                                                                                                                                  |
 | showName         | object  |          | 显示在选项中的名称的键名                                                                                                                                                           |
 | showValue        | object  |          | 选项值的键名                                                                                                                                                                       |
@@ -128,8 +128,8 @@
 
 | 参数名称         | 类型   | 是否必选 | 说明                                                |
 | :--------------- | :----- | :------- | :-------------------------------------------------- |
-| componentsProps  | object |          | 按钮组件的 props 配置，如 'type'、'size'、'icon' 等 |
-| componentsEvents | object |          | 按钮组件的事件，如 'on-click' 等                    |
+| componentProps  | object |          | 按钮组件的 props 配置，如 'type'、'size'、'icon' 等 |
+| componentEvents | object |          | 按钮组件的事件，如 'on-click' 等                    |
 | text             | string |          | 按钮的文字                                          |
 
 示例：
@@ -138,14 +138,14 @@
 // 重写默认的搜索重置按钮
    actionProps: {
         submit: {
-          componentsProps: {
+          componentProps: {
             type: 'primary',
             icon: 'md-search',
           },
           text: '查询'
         },
         reset: {
-         componentsProps: {
+         componentProps: {
             type: 'default',
             icon: 'md-refresh',
           },
@@ -158,7 +158,7 @@ action: ['submit', 'reset', 'add'],
 actionProps: {
 
   add: {
-    componentsProps: {
+    componentProps: {
       type: 'primary',
       icon: 'md-add',
     },

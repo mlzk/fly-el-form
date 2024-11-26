@@ -108,7 +108,7 @@ export default {
 					type: 'el-select',
 					key: 'type',
 					required: true,
-					componentsProps: {
+					componentProps: {
 						clearable: true,
 					},
 					source: {
@@ -142,7 +142,7 @@ export default {
 					placeholder: '请输入正整数',
 					type: 'el-input-number',
 					key: 'batchCount',
-					componentsProps: {
+					componentProps: {
 						min: 1,
 					},
 					value: 1, // 初始
@@ -209,7 +209,7 @@ export default {
 					type: 'el-select',
 					key: 'type2',
 					required: true,
-					componentsProps: {
+					componentProps: {
 						clearable: true,
 					},
 					custom: { group: true },
@@ -253,7 +253,7 @@ export default {
 					required: true,
 					type: 'el-date-picker',
 					key: 'datetime',
-					componentsProps: {
+					componentProps: {
 						type: 'datetime',
 					},
 				},
@@ -263,7 +263,7 @@ export default {
 					requiredType: 'array',
 					type: 'el-date-picker',
 					key: 'datetimerange',
-					componentsProps: {
+					componentProps: {
 						type: 'datetimerange',
 					},
 				},
@@ -272,7 +272,7 @@ export default {
 					required: true,
 					type: 'el-time-select',
 					key: 'TimePicker',
-					componentsProps: {
+					componentProps: {
 						type: 'time',
 					},
 				},
@@ -346,7 +346,7 @@ export default {
 					key: 'Upload',
 					required: true,
 					requiredType: 'array',
-					componentsProps: {
+					componentProps: {
 						data: {},
 						action: 'https://jsonplaceholder.typicode.com/posts/',
 						'list-type': 'picture-card',
@@ -391,14 +391,14 @@ export default {
 			],
 			actionProps: {
 				submit: {
-					componentsProps: {
+					componentProps: {
 						type: 'primary',
 						icon: 'search',
 					},
 					text: '查询',
 				},
 				reset: {
-					componentsProps: {
+					componentProps: {
 						type: 'default',
 						icon: 'refresh',
 					},

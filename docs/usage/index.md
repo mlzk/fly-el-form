@@ -91,7 +91,7 @@ originData.value = [
 		type: 'el-row',
 		children: [
 			{
-				name: '收资任务名称',
+				name: '任务名称',
 				type: 'el-input',
 				key: 'productBrand',
 				required: true,
@@ -114,7 +114,7 @@ originData.value = [
 				source: {
 					data: [
 						{
-							label: 'Es',
+							label: '产品一',
 							value: 1,
 						},
 					],
@@ -127,7 +127,7 @@ originData.value = [
 			{
 				name: '型号',
 				type: 'el-input',
-				componentsProps: {
+				componentProps: {
 					disabled: true,
 				},
 				key: 'certificationClientAddress',
@@ -147,14 +147,14 @@ const formProps = ref({
 })
 const actionProps = ref({
 	submit: {
-		componentsProps: {
+		componentProps: {
 			type: 'primary',
 			icon: 'search',
 		},
 		text: '检索',
 	},
 	reset: {
-		componentsProps: {
+		componentProps: {
 			type: 'default',
 			icon: 'refresh',
 		},

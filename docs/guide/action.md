@@ -18,8 +18,8 @@ action: ['submit', 'reset',...]
 
 | 参数名称         | 类型   | 是否必选 | 说明                                                |
 | :--------------- | :----- | :------- | :-------------------------------------------------- |
-| componentsProps  | object |          | 按钮组件的 props 配置，如 'type'、'size'、'icon' 等 |
-| componentsEvents | object |          | 按钮组件的事件，如 'onClick' 等                    |
+| componentProps  | object |          | 按钮组件的 props 配置，如 'type'、'size'、'icon' 等 |
+| componentEvents | object |          | 按钮组件的事件，如 'onClick' 等                    |
 | text             | string |          | 按钮的文字                                          |
 
 ``` js
@@ -27,26 +27,26 @@ action: ['submit', 'reset',...]
 {
 	
 	submit: {
-		componentsProps: {
+		componentProps: {
 			type: 'primary',
 			icon: 'search',
 		},
 		text: '检索',
 	},
 	reset: {
-		componentsProps: {
+		componentProps: {
 			type: 'default',
 			icon: 'refresh',
 		},
 		text: '重置',
 	},
 	custom: {
-		componentsProps: {
+		componentProps: {
 			type: 'warning',
 			icon: 'edit',
 			round: true,
 		},
-		componentsEvents: {
+		componentEvents: {
 			onClick: () => {
 			ElMessage.info('自定义事件')
 			},
@@ -111,7 +111,7 @@ originData.value = [
 				source: {
 					data: [
 						{
-							label: 'Es',
+							label: '产品一',
 							value: 1,
 						},
 					],
@@ -130,26 +130,26 @@ const action = ref([ 'custom','submit', 'reset'])
 const actionProps = ref({
 	
 	submit: {
-		componentsProps: {
+		componentProps: {
 			type: 'primary',
 			icon: 'search',
 		},
 		text: '检索',
 	},
 	reset: {
-		componentsProps: {
+		componentProps: {
 			type: 'default',
 			icon: 'refresh',
 		},
 		text: '重置',
 	},
 	custom: {
-		componentsProps: {
+		componentProps: {
 			type: 'warning',
 			icon: 'edit',
 			round: true,
 		},
-		componentsEvents: {
+		componentEvents: {
 			onClick: () => {
 			ElMessage.info('自定义事件')
 			},
@@ -241,7 +241,7 @@ originData.value = [
 				source: {
 					data: [
 						{
-							label: 'Es',
+							label: '产品一',
 							value: 1,
 						},
 					],

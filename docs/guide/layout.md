@@ -6,15 +6,38 @@
 
 :::
 
+### 默认row配置
+
+```js
+{
+	type: 'el-row',
+	componentProps: {
+		gutter: 0,
+		// 如果不传值，默认为0
+	}
+}
+
+```
+
+### 默认col配置
+
+```js
+{
+	xs: 24,
+	sm: 12,
+	md: 12,
+	lg: 6,
+}
+```
+
 ## 排版
 
 ### el-row/el-col
 
 在`mode='form'`时，可以使用`el-row`和`el-col`作为`type`类型进行嵌套排版
 
-
 ```js
-[
+;[
 	{
 		type: 'el-row',
 		children: [
@@ -51,7 +74,9 @@
 	},
 ]
 ```
+
 ### 示例
+
 :::demo
 
 ```vue
@@ -82,6 +107,8 @@ originData.value = [
 				colProps: {
 					md: 24,
 					lg: 24,
+					xs: 24,
+					sm: 24,
 				},
 			},
 		],
@@ -97,6 +124,8 @@ originData.value = [
 				colProps: {
 					md: 12,
 					lg: 12,
+					xs: 24,
+					sm: 24,
 				},
 			},
 			{
@@ -107,6 +136,8 @@ originData.value = [
 				colProps: {
 					md: 12,
 					lg: 12,
+					xs: 24,
+					sm: 24,
 				},
 			},
 		],
@@ -122,6 +153,8 @@ originData.value = [
 				colProps: {
 					md: 12,
 					lg: 12,
+					xs: 24,
+					sm: 24,
 				},
 			},
 			{
@@ -132,6 +165,8 @@ originData.value = [
 				colProps: {
 					md: 12,
 					lg: 12,
+					xs: 24,
+					sm: 24,
 				},
 			},
 		],
@@ -147,6 +182,8 @@ originData.value = [
 				colProps: {
 					md: 12,
 					lg: 12,
+					xs: 24,
+					sm: 24,
 				},
 			},
 			{
@@ -157,6 +194,8 @@ originData.value = [
 				colProps: {
 					md: 12,
 					lg: 12,
+					xs: 24,
+					sm: 24,
 				},
 			},
 		],
@@ -170,7 +209,7 @@ originData.value = [
 				key: 'timePeriod',
 				required: true,
 				requiredType: 'array',
-				componentsProps: {
+				componentProps: {
 					type: 'daterange',
 					'start-placeholder': '开始时间',
 					'end-placeholder': '结束时间',
@@ -179,23 +218,26 @@ originData.value = [
 				colProps: {
 					md: 24,
 					lg: 24,
+					xs: 24,
+					sm: 24,
 				},
 			},
 		],
 	},
 	{
-		type:'Title',
-		name:'标题/分割线组件',
-		props:{
-			class:'fly-form-title-container', // 自定义el-row class 控制样式
+		type: 'Title',
+		name: '标题/分割线组件',
+		componentProps: {
+			class: 'fly-form-title-container', // 自定义el-row class 控制样式
 			// justify:'center' // el-row的props
 		},
-		style: { // style作用于 fly-form-title 
+		style: {
+			// style作用于 fly-form-title
 			'font-size': '14px',
 			'font-weight': 'bold',
-			'color': '#333',
+			color: '#333',
 			'border-bottom': '1px solid #ccc',
-		}
+		},
 	},
 	{
 		type: 'el-row',
@@ -221,6 +263,8 @@ originData.value = [
 				colProps: {
 					md: 24,
 					lg: 24,
+					xs: 24,
+					sm: 24,
 				},
 			},
 		],
@@ -236,6 +280,8 @@ originData.value = [
 				colProps: {
 					md: 24,
 					lg: 24,
+					xs: 24,
+					sm: 24,
 				},
 			},
 		],
@@ -258,20 +304,21 @@ const handleReset = () => {
 ```
 
 :::
+
 ### 标题/分割线组件
 
 用于表单内容的分组
 
-``` js
+```js
 
 {
 		type:'Title',
 		name:'标题/分割线组件',
-		props:{
+		componentProps:{
 			class:'fly-form-title-container', // 自定义el-row class 控制样式
 			// justify:'center' // el-row的props
 		},
-		style: { // style作用于 fly-form-title 
+		style: { // style作用于 fly-form-title
 			'font-size': '14px',
 			'font-weight': 'bold',
 			'color': '#333',
@@ -283,7 +330,9 @@ const handleReset = () => {
 ## 其它配置
 
 其它配置参考`elementPLus`的`formProps`，不再赘述
+
 ### 示例
+
 :::demo
 
 ```vue
@@ -384,7 +433,7 @@ export default {
 					type: 'el-select',
 					key: 'type',
 					required: true,
-					componentsProps: {
+					componentProps: {
 						clearable: true,
 					},
 					source: {
@@ -418,7 +467,7 @@ export default {
 					placeholder: '请输入正整数',
 					type: 'el-input-number',
 					key: 'batchCount',
-					componentsProps: {
+					componentProps: {
 						min: 1,
 					},
 					value: 1, // 初始
@@ -485,7 +534,7 @@ export default {
 					type: 'el-select',
 					key: 'type2',
 					required: true,
-					componentsProps: {
+					componentProps: {
 						clearable: true,
 					},
 					custom: { group: true },
@@ -529,7 +578,7 @@ export default {
 					required: true,
 					type: 'el-date-picker',
 					key: 'datetime',
-					componentsProps: {
+					componentProps: {
 						type: 'datetime',
 					},
 				},
@@ -539,7 +588,7 @@ export default {
 					requiredType: 'array',
 					type: 'el-date-picker',
 					key: 'datetimerange',
-					componentsProps: {
+					componentProps: {
 						type: 'datetimerange',
 					},
 				},
@@ -548,7 +597,7 @@ export default {
 					required: true,
 					type: 'el-time-select',
 					key: 'TimePicker',
-					componentsProps: {
+					componentProps: {
 						type: 'time',
 					},
 				},
@@ -622,7 +671,7 @@ export default {
 					key: 'Upload',
 					required: true,
 					requiredType: 'array',
-					componentsProps: {
+					componentProps: {
 						data: {},
 						action: 'https://jsonplaceholder.typicode.com/posts/',
 						'list-type': 'picture-card',
@@ -647,7 +696,7 @@ export default {
 					},
 					slot: (h) => {
 						return h(resolveComponent('ElIcon'), null, {
-							default: () => h(	resolveComponent('UploadFilled')),
+							default: () => h(resolveComponent('UploadFilled')),
 						})
 					},
 				},
@@ -667,14 +716,14 @@ export default {
 			],
 			actionProps: {
 				submit: {
-					componentsProps: {
+					componentProps: {
 						type: 'primary',
 						icon: 'search',
 					},
 					text: '查询',
 				},
 				reset: {
-					componentsProps: {
+					componentProps: {
 						type: 'default',
 						icon: 'refresh',
 					},

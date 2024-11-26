@@ -127,7 +127,6 @@ originData.value = [
 ]
 
 const formProps = ref({
-	inline: true,
 	labelPosition: 'top',
 })
 

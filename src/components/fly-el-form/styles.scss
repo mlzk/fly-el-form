@@ -8,7 +8,7 @@
 			margin-bottom: 5px;
 			.el-col {
 				.el-form-item {
-					width: 100% !important;
+					width: 100% ;
 				}
 				// padding-right: 15px;
 				&:last-child {
@@ -18,6 +18,11 @@
 				.el-cascader {
 					width: 100%;
 				}
+			}
+		}
+		.fly-form-row{
+			&> .fly-form-item{
+				width: 100%;
 			}
 		}
 	}
@@ -60,8 +65,12 @@
 }
 
 .fly-form-footer {
+	padding: 0 10px;
 	.el-button {
 		margin: 0 5px;
+		&.last-child {
+			margin-right: 0;
+		}
 	}
 }
 

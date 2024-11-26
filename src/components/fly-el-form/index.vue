@@ -4,15 +4,7 @@ import { requireTypes, hasOwnPropertySafely } from './formParser'
 import type { FormInstance } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import type FlyFormTypes from './types.d.ts'
-import {
-  defineComponent,
-  ref,
-  h,
-  watch,
-  nextTick,
-  getCurrentInstance,
-  resolveComponent,
-} from 'vue'
+import { defineComponent, ref, h, watch, nextTick, resolveComponent } from 'vue'
 export default defineComponent({
   name: 'FlyElForm',
   props: {
@@ -25,11 +17,6 @@ export default defineComponent({
     singleStepErrorTip: {
       type: Boolean,
       default: false,
-    },
-    // 是否启用加载状态ui
-    enableSpin: {
-      type: Boolean,
-      default: true,
     },
     // 行内换行模式
     inlineBlock: {
@@ -73,6 +60,27 @@ export default defineComponent({
       type: Object,
       default: () => {
         return {}
+      },
+    },
+    /**表单row配置 */
+    formRowProps: {
+      type: Object,
+      default: () => {
+        return {
+          gutter: 10,
+        }
+      },
+    },
+    /**表单col配置 */
+    formColProps: {
+      type: Object,
+      default: () => {
+        return {
+          xs: 24,
+          sm: 12,
+          md: 12,
+          lg: 6,
+        }
       },
     },
     // 是否展示表单底部
@@ -160,56 +168,56 @@ export default defineComponent({
         rules: {},
         requests: {},
       }
+      // 对深度不确定的data数组进行校验要求data下的item必须有key并且key必须为string并且key不能重复
 
       const inputTips = ['el-input', 'el-input-number']
 
       data.forEach((item: FlyFormTypes.FormItem) => {
-        formKeyAndName.value[item.key] = item.name
         // 如果设置了key自动设置不同类型默认值
-        if (Object.prototype.hasOwnProperty.call(item, 'key')) {
-          // q: 为什么要这样处理
-          // a: 因为el-form-item的value默认值是undefined，如果设置了默认值，会导致el-form-item的value和el-form的value不一致，导致校验不通过
-          if (item.type === 'el-input-number') {
-            res.formData[item.key] = Object.prototype.hasOwnProperty.call(
-              item,
-              'value'
+        if (
+          !hasOwnPropertySafely(item, 'type') &&
+          !hasOwnPropertySafely(item, 'hidden')
+        ) {
+          throw new Error(`form item type is required.`)
+        }
+        if (hasOwnPropertySafely(item, 'key')) {
+          if (hasOwnPropertySafely(formKeyAndName.value, item.key)) {
+            throw new Error(
+              `form item key "${item.key}" is duplicated. Please use another key.`
             )
+          } else {
+            formKeyAndName.value[item.key] = item.name
+          }
+          if (item.type === 'el-input-number') {
+            res.formData[item.key] = hasOwnPropertySafely(item, 'value')
               ? item.value
               : null
           } else if (item.type === 'el-checkbox-group') {
-            res.formData[item.key] = Object.prototype.hasOwnProperty.call(
-              item,
-              'value'
-            )
+            res.formData[item.key] = hasOwnPropertySafely(item, 'value')
               ? item.value
               : []
           } else {
-            res.formData[item.key] = Object.prototype.hasOwnProperty.call(
-              item,
-              'value'
-            )
-              ? item.value
-              : undefined
+            if (
+              hasOwnPropertySafely(item, 'type') &&
+              item.type !== 'el-row' &&
+              item.type !== 'title'
+            ) {
+              res.formData[item.key] = hasOwnPropertySafely(item, 'value')
+                ? item.value
+                : undefined
+            }
           }
         }
 
         // 如果设置了rules自动设置rules
-        if (
-          Object.prototype.hasOwnProperty.call(item, 'rules') &&
-          item.rules!.length > 0
-        ) {
+        if (hasOwnPropertySafely(item, 'rules') && item.rules!.length > 0) {
           res.rules[item.key] = item.rules
         }
 
-        // 如果设置了required自动生成校验提示
-        // rlues对number类型的校验有问题，需要手动设置type
         if (item.required) {
-          const requiredType = Object.prototype.hasOwnProperty.call(
-            item,
-            'requiredType'
-          )
+          const requiredType = hasOwnPropertySafely(item, 'requiredType')
             ? item.requiredType
-            : requireTypes[item.type] || 'string' // 默认值
+            : requireTypes[item.type] || 'string'
 
           const tips = {
             required: true,
@@ -221,7 +229,7 @@ export default defineComponent({
           }
 
           if (
-            Object.prototype.hasOwnProperty.call(res.rules, item.key) &&
+            hasOwnPropertySafely(res.rules, item.key) &&
             res.rules[item.key]!.length > 0
           ) {
             res.rules[item.key] = [tips, ...res.rules[item.key]!]
@@ -238,13 +246,13 @@ export default defineComponent({
         }
         // 如果设置了source自动设置传入静态数据源
         else if (
-          Object.prototype.hasOwnProperty.call(item, 'source') &&
-          Object.prototype.hasOwnProperty.call(item.source, 'data') &&
+          hasOwnPropertySafely(item, 'source') &&
+          hasOwnPropertySafely(item.source, 'data') &&
           item.source
         ) {
           sourceData.value[item.key] = item.source.data
         } else {
-          !Object.prototype.hasOwnProperty.call(sourceData.value, item.key) &&
+          !hasOwnPropertySafely(sourceData.value, item.key) &&
             (sourceData.value[item.key] = [])
         }
 
@@ -254,15 +262,15 @@ export default defineComponent({
             (inputTips.includes(item.type) ? '请填写' : '请选择') + item.name
         }
 
-        // 剪除source属性，初始化之后不再允许通过修改source属性来修改数据源，因为source属性是用来生成请求的且只能生成一次，如需调整指定数据源，可以通过修改source.data属性来实现或者通过内部方法changeSource手动实现
+        // 剪除source属性，初始化之后不再允许通过修改source属性来修改数据源，因为source属性是用来生成请求的且只能生成一次，如需调整指定数据源，可以通过修改source.data属性来
         const mItem: FlyFormTypes.FormItem = { ...item }
-        if (Object.prototype.hasOwnProperty.call(mItem, 'source')) {
+        if (hasOwnPropertySafely(mItem, 'source')) {
           delete mItem.source
         }
 
         if (
           item.type === 'el-row' &&
-          Object.prototype.hasOwnProperty.call(item, 'children') &&
+          hasOwnPropertySafely(item, 'children') &&
           item.children!.length > 0
         ) {
           const cRes = collectFormContent(item.children!)
@@ -375,7 +383,6 @@ export default defineComponent({
 
           Object.keys(errors).forEach((key) => {
             const item = errors[key][0]
-            // 表单校验未通过
             errorMsg.push(item.message)
             errorNames.push(this.formKeyAndName[key])
           })
@@ -610,6 +617,7 @@ export default defineComponent({
         // @ts-ignore
         resolveComponent('el-row'),
         {
+					...props.formRowProps,
           class: 'fly-form-footer',
           justify: 'end',
           ...props.footerRowProps,
@@ -639,7 +647,7 @@ export default defineComponent({
         // @ts-ignore
         resolveComponent('el-row'),
         {
-          gutter: 10,
+          ...props.formRowProps,
           ...item.componentProps,
           class: `fly-form-row ${item.class ? item.class : ''}`,
           style: {
@@ -655,12 +663,9 @@ export default defineComponent({
         // @ts-ignore
         resolveComponent('el-col'),
         {
-          xs: 24,
-          sm: 12,
-          md: 12,
-          lg: 6,
+          ...props.formColProps,
           ...colProps,
-					key: item.key,
+          key: item.key,
         },
         { default: () => generatorFormItem(item) }
       )
@@ -705,6 +710,9 @@ export default defineComponent({
             case 'Title':
               res.push(generatorTitle(item))
               break
+            case 'title':
+              res.push(generatorTitle(item))
+              break
             default:
               break
           }
@@ -737,7 +745,7 @@ export default defineComponent({
           // @ts-ignore
           resolveComponent('el-row'),
           {
-            ...item.props,
+            class: `fly-form-row`,
           },
           { default: () => generatorFormItem(item) }
         )
@@ -759,9 +767,7 @@ export default defineComponent({
           prop: item.key,
           label: item.name,
           class: `fly-form-item ${item.class ? item.class : ''}`,
-          style: {
-            ...item.style,
-          },
+          ...item.formItemProps,
         },
         slotRender
       )

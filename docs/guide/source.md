@@ -73,7 +73,6 @@ originData.value = [
 ]
 
 const formProps = ref({
-	inline: true,
 	labelPosition: 'top',
 })
 
@@ -343,7 +342,6 @@ originData.value = [
 ]
 
 const formProps = ref({
-	inline: true,
 	labelPosition: 'top',
 })
 

@@ -256,7 +256,7 @@ originData.value = [
 ]
 
 const formProps = ref({
-	inline: true,
+
 	labelPosition: 'top',
 })
 const footerRowProps = ref({

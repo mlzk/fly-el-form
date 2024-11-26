@@ -11,11 +11,12 @@
 | status             | 该属性用于定义表单的状态。可以为 'create' 添加状态，'edit' 编辑状态或 'view' 查看状态。默认为 'create' 添加状态。  影响按钮的文案                                                              | string  | 'add'      | 'create' / 'edit'    |
 | formProps          | 该属性用于定义 element-plus form 表单的全量配置                                                                                                                               | Object  | {}         | -                 |
 | formEvents         | 该属性用于定义表单的 element-plus form 表单的全量事件。可以设置表单提交、重置等事件的回调函数。默认为一个空对象。                                                             | Object  | {}         | -                 |
-| formItemProps      | 该属性用于定义表单项的配置。可以设置表单项的布局、宽度、高度、对齐方式、标签等。默认为一个空对象。                                                                         | Object  | {}         | -                 |
 | showFooter         | 该属性用于定义是否展示表单底部。如果设置为 true，则会在表单底部显示一个操作按钮区域，用于提交、重置、取消等操作。如果设置为 false，则不会显示表单底部。                    | boolean | true       | -                 |
 | footerRowProps     | 该属性用于定义表单底部的 Row 行配置。可以设置行的对齐方式、宽度、高度等。默认为一个空对象。                                                                                | Object  | {}         | -                 |
 | action             | 表单操作按钮配置选项 该属性用于定义表单操作按钮。可以包含 'submit' 提交按钮，'reset' 重置按钮以及其他自定义按钮。默认只包含一个 'submit' 提交按钮。 顺序敏感可调整按钮顺序 | Array   | ['submit'] | -                 |
 | actionProps        | 该属性用于定义表单操作按钮的配置。可以设置按钮的类型、大小、图标、文字等。默认为一个空对象。                                                                               | Object  | {}         | -                 |
+| formRowProps        | 统一配置表单项的 Row 行配置。可以设置行的对齐方式、宽度、高度等。                                                                               | Object  | {gutter:10}         | -                 |
+| formColProps        | 统一配置表单项的 Col 列配置。可以设置列的对齐方式、宽度、高度等。                                                                              | Object  | "{xs: 24,sm: 12,md: 12,lg: 6}"       | -                 |
 
 ## Form
 
@@ -28,16 +29,15 @@
 | value            | any     |          | 表单的默认值                                                                                                                                                                       |
 | rules            | array   |          | 表单的校验规则                                                                                                                                                                     |
 | required         | boolean |          | 表单是否必填 rules 的快捷设置                                                                                                                                                      |
-| requiredType     | string  |          | value校验的数据类型,可选值为 'string'、'number'、'boolean'、'array'                                                                                                                                              |
 | effectKeys       | array   |          | 组件值发生变化之后影响的字段数据源例如 on-change 之后触发effectKeys中联动组件key的数据源刷新(如果在componentEvents自定义on-change事件该配置无效请手动使用ref方法调用updateSource) |
-| componentProps  | object  |          | 表单组件的 props 配置，如 'filterable'、'clearable' 等                                                                                                                             |
+| componentProps  | object  |          | 表单组件的 props 配置，如 'filterable'、'clearable' 等 （type==='el-row'时作为el-row的props）                                                                                                                         |
 | componentEvents | object  |          | 表单组件的事件，如 'on-change'、'on-input' 等                                                                                                                                      |
+| formItemProps      | Object  |          | 该属性用于定义表单项的配置。可以设置表单项的布局、宽度、高度、对齐方式、标签等。默认为一个空对象。优先级高于formProps                                                                        {}         | -                 |
 | source           | object  |          | 表单项的数据源，包含 API 接口、接口参数、处理函数                                                                                                                                  |
 | showName         | object  |          | 显示在选项中的名称的键名                                                                                                                                                           |
 | showValue        | object  |          | 选项值的键名                                                                                                                                                                       |
 | colProps         | object  |          | 在 type=='Row'作为根节点时有效，用于设置表单项外层的 props                                                                                                                         |
-| class            | string  |          | 用于设置表单项外层 form-item 的 class 【Title/Row 设置的都是本身元素】                                                                                                             |
-| style            | string  |          | 用于设置表单项外层 form-item 的 style 【Title/Row 设置的都是本身元素】                                                                                                             |
+
 
 ## Type 
 

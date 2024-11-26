@@ -10,6 +10,7 @@ declare namespace FlyFormTypes {
 		requiredType?: string
 		tips?: string
 		tipLabelProps?: Record<string, any>
+		formItemProps: Record<string, any>
 		visitable?: Function
 		props?: Record<string, any>
 		componentProps?: Record<string, any>

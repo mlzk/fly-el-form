@@ -89,6 +89,15 @@
 		:action-props="actionProps"
 		:show-footer="true"
 		enable-spin
+		:form-row-props="{
+			gutter: 20,
+		}"
+		:form-col-props="{
+			xs: 24,
+			sm: 24,
+			md: 24,
+			lg: 24,
+		}"
 	/>
 </template>
 
@@ -277,6 +286,10 @@ originData.value = [
 				type: 'el-switch',
 				key: 'switch',
 				required: false,
+				formItemProps: {
+					labelPosition: 'left',
+					labelWidth: '150px',
+				},
 				colProps: {
 					md: 24,
 					lg: 24,
@@ -289,7 +302,6 @@ originData.value = [
 ]
 
 const formProps = ref({
-	inline: true,
 	labelPosition: 'top',
 })
 

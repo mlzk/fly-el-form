@@ -233,6 +233,23 @@ originData.value = [
 			},
 		],
 	},
+		{
+		type: 'el-row',
+		children: [
+			{
+				name: '日期',
+				type: 'el-date-picker',
+				key: 'time',
+				required: true,
+				colProps: {
+					md: 24,
+					lg: 24,
+					xs: 24,
+					sm: 24,
+				},
+			},
+		],
+	},
 	{
 		type: 'Title',
 		name: '标题/分割线组件',

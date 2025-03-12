@@ -1,5 +1,5 @@
 declare namespace FlyFormTypes {
-	interface FormItem {
+  interface FormItem {
 		name: string
 		placeholder?: string
 		type: string
@@ -35,7 +35,7 @@ declare namespace FlyFormTypes {
 		children?: FormItem[]
 	}
 
-	type RequestFunc = () => Promise<any>
+  type RequestFunc = () => Promise<any>
 	interface Source {
 		api: string
 		params?: Record<string, any>
@@ -50,7 +50,7 @@ declare namespace FlyFormTypes {
 	}
 	type Form = FormItem[]
 
-	interface Props {
+  interface Props {
 		model: string
 		singleStepErrorTip: boolean
 		enableSpin?: boolean
@@ -75,7 +75,7 @@ declare namespace FlyFormTypes {
 	interface VNode {
 		[key: string]: any
 	}
-	declare class FormParser {
+  class FormParser {
 		private props: FlyFormTypes.Props
 		private context: any
 		private funcTree: FlyFormTypes.FuncTree

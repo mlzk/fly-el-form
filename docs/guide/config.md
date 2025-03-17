@@ -91,10 +91,11 @@ export default {
 					value: '',
 				},
 				{
-					name: '隐藏字段',
+					// name: '隐藏字段',
 					hidden: true,
 					key: 'id',
-					value: '',
+					type: 'el-input',
+					// value: '',
 				},
 				{
 					name: '年龄',

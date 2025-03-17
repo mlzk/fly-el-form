@@ -163,8 +163,7 @@
           if (requests && requests.length > 0) {
             await Promise.allSettled(requests).catch((err) => {
               console.warn(err)
-            })
-            console.log('requests请求', requests)
+						})
           }
           // form表单生成
           formValues.value = Object.assign({}, res.formData)
@@ -201,6 +200,7 @@
             throw new Error(`form item type is required.`)
           }
           if (hasOwnPropertySafely(item, 'key')) {
+
             if (hasOwnPropertySafely(formKeyAndName.value, item.key)) {
               throw new Error(
                 `form item key "${item.key}" is duplicated. Please use another key.`,
@@ -216,15 +216,16 @@
               res.formData[item.key] = hasOwnPropertySafely(item, 'value')
                 ? item.value
                 : []
-            } else {
+						} else {
+
               if (
-                hasOwnPropertySafely(item, 'type') &&
-                item.type !== 'el-row' &&
-                item.type !== 'title'
-              ) {
-                res.formData[item.key] = hasOwnPropertySafely(item, 'value')
-                  ? item.value
-                  : undefined
+								(hasOwnPropertySafely(item, 'type') &&
+									item.type !== 'el-row' &&
+									item.type !== 'title')
+							) {
+								res.formData[item.key] = hasOwnPropertySafely(item, 'value')
+									? item.value
+									: undefined
               }
             }
           }
@@ -689,7 +690,12 @@
         )
       }
       const generatorCol: any = (item: FlyFormTypes.FormItem) => {
-        const colProps = item.colProps ? item.colProps : {}
+				const colProps = item.colProps ? item.colProps : {}
+				// 判断hidden是否为true
+				// @ts-ignore
+				if (hasOwnPropertySafely(item, 'hidden') && item.hidden) {
+					return null
+				}
         const layout = h(
           // @ts-ignore
           resolveComponent('el-col'),

@@ -98,6 +98,7 @@
 			md: 24,
 			lg: 24,
 		}"
+		@submit="handleSubmit"
 	/>
 </template>
 
@@ -120,6 +121,13 @@ originData.value = [
 					sm: 24,
 				},
 			},
+			{
+					// name: '隐藏字段',
+					hidden: true,
+					key: 'id',
+					type: 'el-input',
+					// value: '',
+				},
 		],
 	},
 	{

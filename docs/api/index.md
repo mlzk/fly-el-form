@@ -37,7 +37,9 @@
 | showName         | object  |          | 显示在选项中的名称的键名                                                                                                                                                           |
 | showValue        | object  |          | 选项值的键名                                                                                                                                                                       |
 | colProps         | object  |          | 在 type=='Row'作为根节点时有效，用于设置表单项外层的 props                                                                                                                         |
-
+| optionSlot       | function |          | 用于自定义选项渲染内容的函数，接收两个参数(item, h)，item为选项数据，h为渲染函数                                                                                                  |
+| uploadSlots      | object   |          | 上传组件的插槽配置，包含 default/trigger/tip/file/fileList 等插槽                                                                                                                  |
+| custom           | object   |          | 特殊配置项，如 select 的 group 分组等，{ group: boolean }                                                                                                                          |
 
 ## Type 
 
@@ -59,8 +61,63 @@
 | Rate           | string | true     | 评分                 |
 | Row            | string | true     | 行                   |
 | Title          | string | true     | 自定义 Title，类似行 |
+| Upload         | string | true     | 文件上传组件         |
 
-> ! Title/Upload 额外有 slot 选项
+## UploadSlots
+
+| 参数名称   | 类型                    | 说明                           |
+| :--------- | :---------------------- | :----------------------------- |
+| default    | (h) => VNode           | 触发文件选择框的内容           |
+| trigger    | (h) => VNode           | 触发文件选择框的内容(同default)|
+| tip        | (h) => VNode           | 提示说明文字                   |
+| file       | (file, h) => VNode     | 文件列表项的内容               |
+| fileList   | (fileList, h) => VNode | 完整的文件列表                 |
+
+## Select 高级配置
+
+### 分组选择器
+
+通过设置 `custom.group: true` 来启用分组功能，数据源需要按照分组格式提供：
+
+```js
+{
+  type: 'el-select',
+  key: 'department',
+  name: '部门',
+  custom: { group: true },
+  source: {
+    data: {
+      '技术部': [
+        { label: '前端组', value: 'fe' },
+        { label: '后端组', value: 'be' }
+      ],
+      '产品部': [
+        { label: '产品组', value: 'pm' },
+        { label: 'UI组', value: 'ui' }
+      ]
+    }
+  }
+}
+```
+
+### 自定义选项模板
+
+通过 `optionSlot` 函数来自定义选项的渲染内容：
+
+```js
+{
+  type: 'el-select',
+  key: 'user',
+  name: '用户选择',
+  optionSlot: (item, h) => {
+    return h('div', { class: 'custom-option' }, [
+      h('img', { src: item.avatar }),
+      h('span', { class: 'label' }, item.name),
+      h('span', { class: 'description' }, item.description)
+    ])
+  }
+}
+```
 
 ## Rules
 

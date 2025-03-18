@@ -1,5 +1,6 @@
 export default {
 	'/guide/': getComponentsSidebar(),
+	'/examples/': getExamplesSidebar(),
 }
 
 function getComponentsSidebar() {
@@ -61,6 +62,24 @@ function getGuideSidebar() {
 				{
 					text: '文档3',
 					link: '/guide/modal',
+				},
+			],
+		},
+	]
+}
+
+function getExamplesSidebar() {
+	return [
+		{
+			text: '示例',
+			items: [
+				{
+					text: '上传',
+					link: '/examples/upload',
+				},
+				{
+					text: '选项组',
+					link: '/examples/select-group',
 				},
 			],
 		},

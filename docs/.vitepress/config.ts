@@ -25,6 +25,11 @@ export default defineConfig({
 				link: '/guide/mode',
 				activeMatch: '^/guide/',
 			},
+			{
+				text: '示例',
+				link: '/examples/upload',
+				activeMatch: '^/examples/',
+			},
 		],
 
 		sidebar,

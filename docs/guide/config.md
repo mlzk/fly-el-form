@@ -91,6 +91,16 @@ export default {
 					value: '',
 				},
 				{
+					name: '姓名 textarea',
+					required: true,
+					type: 'el-input',
+					componentProps: {
+						type: 'textarea',
+					},
+					key: 'name2',
+					value: '',
+				},
+				{
 					// name: '隐藏字段',
 					hidden: true,
 					key: 'id',
@@ -127,6 +137,17 @@ export default {
 								id: '3',
 							},
 						],
+					},
+					optionSlot: (item, h) => {
+						return h('span', {
+							class: 'custom-option',
+							style: {
+								color: 'red',
+							},
+						}, [
+							h('span', item.name),
+							h('span', item.id),
+						])
 					},
 					showName: 'name',
 					showValue: 'id',

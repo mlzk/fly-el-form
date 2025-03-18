@@ -16,6 +16,7 @@ declare namespace FlyFormTypes {
 		componentProps?: Record<string, any>
 		componentEvents?: Record<string, any>
 		options?: any[]
+		optionSlot?: (item: any, h: any) => any
 		optionProps?: Record<string, any>
 		effectKeys?: any[]
 		source?: {
@@ -25,7 +26,17 @@ declare namespace FlyFormTypes {
 			data?: any[]
 			[key: string]: any
 		}
-		custom?: any
+		custom?: {
+			group?: boolean
+			[key: string]: any
+		}
+		uploadSlots?: {
+			default?: (h: any) => any
+			trigger?: (h: any) => any
+			tip?: (h: any) => any
+			file?: (file: any, h: any) => any
+			fileList?: (fileList: any[], h: any) => any
+		}
 		showName?: string
 		showValue?: string
 		colProps?: Record<string, any>

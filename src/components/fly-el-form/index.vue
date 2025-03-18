@@ -806,333 +806,423 @@
         )
       }
       const generatorItem = (item: FlyFormTypes.FormItem) => {
-        switch (item.type) {
-          // 特殊组件需要在这里处理 例如select的结构需要包含option，类似的还有Radio/CheckBox
-          case 'el-select':
-            return generatorSelect(item)
-          case 'el-radio-group':
-            return generatorRadioGroup(item)
-          case 'el-checkbox-group':
-            return generatorCheckboxGroup(item)
-          default:
-            return generatorComponents(item)
-        }
-      }
-      const generatorComponents = (item: FlyFormTypes.FormItem) => {
-        if (
-          (props.strict && hasOwnPropertySafely(requireTypes, item.type)) ||
-          !props.strict
-        ) {
-          if (item.slot) {
-            return h(
-              // @ts-ignore
-              resolveComponent(item.type),
-              {
-                ...generatorDefaultProps(item),
-                ...generatorSourceData(item),
-                ...item.componentProps,
-                attrs: { placeholder: item.placeholder },
-                ...generatorDefaultEvents(item),
-                ...item.componentEvents,
-              },
-              {
-                default: () => item.slot(h), // 确保 slot 是函数形式
-              },
-            )
-          } else {
-            return h(resolveComponent(item.type), {
-              ...generatorDefaultProps(item),
-              ...generatorSourceData(item),
-              ...item.componentProps,
-              attrs: { placeholder: item.placeholder },
-              ...generatorDefaultEvents(item),
-              ...item.componentEvents,
-            })
-          }
-        } else {
-          return h(
-            'span',
-            {
-              style: {
-                color: 'red',
-              },
-            },
+				switch (item.type) {
+					case 'el-select':
+						return generatorSelect(item)
+					case 'el-radio-group':
+						return generatorRadioGroup(item)
+					case 'el-checkbox-group':
+						return generatorCheckboxGroup(item)
+					case 'el-upload':
+						return generatorUpload(item)
+					default:
+						return generatorComponents(item)
+				}
+			}
+			const generatorComponents = (item: FlyFormTypes.FormItem) => {
+				if (
+					(props.strict && hasOwnPropertySafely(requireTypes, item.type)) ||
+					!props.strict
+				) {
+					if (item.slot) {
+						return h(
+							// @ts-ignore
+							resolveComponent(item.type),
+							{
+								...generatorDefaultProps(item),
+								...generatorSourceData(item),
+								...item.componentProps,
+								attrs: { placeholder: item.placeholder },
+								...generatorDefaultEvents(item),
+								...item.componentEvents,
+							},
+							{
+								default: () => item.slot(h), // 确保 slot 是函数形式
+							},
+						)
+					} else {
+						return h(resolveComponent(item.type), {
+							...generatorDefaultProps(item),
+							...generatorSourceData(item),
+							...item.componentProps,
+							attrs: { placeholder: item.placeholder },
+							...generatorDefaultEvents(item),
+							...item.componentEvents,
+						})
+					}
+				} else {
+					return h(
+						'span',
+						{
+							style: {
+								color: 'red',
+							},
+						},
 
-            `Unaccepted component types '${item.type}'`,
-          )
-        }
-      }
-      /**
-       * 生成默认的数据源 例如Casader\el-transfer
-       */
-      const generatorSourceData = (item: FlyFormTypes.FormItem) => {
-        const res: Record<string, any> = {}
-        const types = ['AutoComplete', 'el-transfer']
-        if (
-          types.includes(item.type) &&
-          hasOwnPropertySafely(this.sourceData, item.key)
-        ) {
-          res['data'] = this.sourceData[item.key]
-        } else if (
-          item.type == 'el-cascader' &&
-          hasOwnPropertySafely(this.sourceData, item.key)
-        ) {
-          res['options'] = this.sourceData[item.key]
-        } else {
-          res['data'] = []
-        }
-        return res
-      }
-      const generatorRadioGroup = (item: FlyFormTypes.FormItem) => {
-        const self = this
-        return h(
-          // @ts-ignore
-          resolveComponent('el-radio-group'),
-          {
-            modelValue: this.formValues[item.key],
-            'onUpdate:modelValue': (val: any) => {
-              // 更新值
-              this.formValues[item.key] = val
-            },
-            ...item.componentProps,
-            ...item.componentEvents,
-          },
-          { default: () => generatorRadio(item, this.sourceData[item.key]) },
-        )
-      }
-      const generatorRadio = (
-        propItem: FlyFormTypes.FormItem,
-        data: any[],
-      ): any[] => {
-        const radios = data && data.length > 0 ? data : propItem.options || []
-        const res: any[] = []
-        const { optionProps } = propItem
-        for (let i = 0; i < radios.length; i++) {
-          const item: Record<string, any> = radios[i]
-          const option = h(
-            // @ts-ignore
-            resolveComponent('el-radio'),
-            {
-              value:
-                (propItem.showValue && item[propItem.showValue]) || item.value,
-              ...optionProps,
-            },
+						`Unaccepted component types '${item.type}'`,
+					)
+				}
+			}
+			/**
+			 * 生成默认的数据源 例如Casader\el-transfer
+			 */
+			const generatorSourceData = (item: FlyFormTypes.FormItem) => {
+				const res: Record<string, any> = {}
+				const types = ['AutoComplete', 'el-transfer']
+				if (
+					types.includes(item.type) &&
+					hasOwnPropertySafely(this.sourceData, item.key)
+				) {
+					res['data'] = this.sourceData[item.key]
+				} else if (
+					item.type == 'el-cascader' &&
+					hasOwnPropertySafely(this.sourceData, item.key)
+				) {
+					res['options'] = this.sourceData[item.key]
+				} else {
+					res['data'] = []
+				}
+				return res
+			}
+			const generatorRadioGroup = (item: FlyFormTypes.FormItem) => {
+				const self = this
+				return h(
+					// @ts-ignore
+					resolveComponent('el-radio-group'),
+					{
+						modelValue: this.formValues[item.key],
+						'onUpdate:modelValue': (val: any) => {
+							// 更新值
+							this.formValues[item.key] = val
+						},
+						...item.componentProps,
+						...item.componentEvents,
+					},
+					{ default: () => generatorRadio(item, this.sourceData[item.key]) },
+				)
+			}
+			const generatorRadio = (
+				propItem: FlyFormTypes.FormItem,
+				data: any[],
+			): any[] => {
+				const radios = data && data.length > 0 ? data : propItem.options || []
+				const res: any[] = []
+				const { optionProps } = propItem
+				for (let i = 0; i < radios.length; i++) {
+					const item: Record<string, any> = radios[i]
+					const option = h(
+						// @ts-ignore
+						resolveComponent('el-radio'),
+						{
+							value:
+								(propItem.showValue && item[propItem.showValue]) || item.value,
+							...optionProps,
+						},
 
-            { default: () => item[propItem.showName || 'label'] },
-          )
-          res.push(option)
-        }
-        return res
-      }
-      const generatorCheckboxGroup = (item: FlyFormTypes.FormItem) => {
-        const self = this
-        return h(
-          // @ts-ignore
-          resolveComponent('el-checkbox-group'),
-          {
-            modelValue: this.formValues[item.key],
-            'onUpdate:modelValue': (val: any) => {
-              // 更新值
-              this.formValues[item.key] = val
-            },
-            ...item.componentProps,
-            ...item.componentEvents,
-          },
-          {
-            default: () => generatorCheckbox(item, this.sourceData[item.key]),
-          },
-        )
-      }
-      const generatorCheckbox = (
-        propItem: FlyFormTypes.FormItem,
-        data: any[],
-      ): any[] => {
-        const checkboxs =
-          data && data.length > 0 ? data : propItem.options || []
-        const res: any[] = []
-        const { optionProps } = propItem
-        for (let i = 0; i < checkboxs.length; i++) {
-          const item = checkboxs[i]
-          const option = h(
-            // @ts-ignore
-            resolveComponent('el-checkbox'),
-            {
-              value:
-                (propItem.showValue && item[propItem.showValue]) || item.value,
-              ...optionProps,
-              key:
-                (propItem.showValue && item[propItem.showValue]) || item.value,
-            },
-            {
-              default: () => item[propItem.showName || 'label'],
-            },
-          )
-          res.push(option)
-        }
+						{ default: () => item[propItem.showName || 'label'] },
+					)
+					res.push(option)
+				}
+				return res
+			}
+			const generatorCheckboxGroup = (item: FlyFormTypes.FormItem) => {
+				const self = this
+				return h(
+					// @ts-ignore
+					resolveComponent('el-checkbox-group'),
+					{
+						modelValue: this.formValues[item.key],
+						'onUpdate:modelValue': (val: any) => {
+							// 更新值
+							this.formValues[item.key] = val
+						},
+						...item.componentProps,
+						...item.componentEvents,
+					},
+					{
+						default: () => generatorCheckbox(item, this.sourceData[item.key]),
+					},
+				)
+			}
+			const generatorCheckbox = (
+				propItem: FlyFormTypes.FormItem,
+				data: any[],
+			): any[] => {
+				const checkboxs =
+					data && data.length > 0 ? data : propItem.options || []
+				const res: any[] = []
+				const { optionProps } = propItem
+				for (let i = 0; i < checkboxs.length; i++) {
+					const item = checkboxs[i]
+					const option = h(
+						// @ts-ignore
+						resolveComponent('el-checkbox'),
+						{
+							value:
+								(propItem.showValue && item[propItem.showValue]) || item.value,
+							...optionProps,
+							key:
+								(propItem.showValue && item[propItem.showValue]) || item.value,
+						},
+						{
+							default: () => item[propItem.showName || 'label'],
+						},
+					)
+					res.push(option)
+				}
 
-        return res
-      }
+				return res
+			}
 
-      const generatorSelect = (item: FlyFormTypes.FormItem) => {
-        // @ts-ignore
-        const formRef = this
-        const selectedLabel = this.formValues[item.key]
-          ? this.sourceData[item.key].find(
-              (option: any) =>
-                option[item.showValue || 'value'] === this.formValues[item.key],
-            )?.[item.showName || 'label']
-          : ''
-        let defaultEvent = {
-          'onUpdate:modelValue': (val: any) => {
-            this.formValues[item.key] = val
-          },
-        }
-        if (item.effectKeys && item.effectKeys.length > 0) {
-          defaultEvent = {
-            'onUpdate:modelValue': (val: any) => {
-              this.formValues[item.key] = val
-              formRef.updateRequestSource(item.effectKeys)
-            },
-          }
-        }
-        return h(
-          // @ts-ignore
-          resolveComponent('el-select'),
-          {
-            modelValue: this.formValues[item.key],
-            placeholder: item.placeholder,
-            ...defaultEvent,
-            ...item.componentProps,
-            ...item.componentEvents,
-          },
-          {
-            default: () =>
-              item.custom && item.custom.group
-                ? generatorOptionsGroup(item, this.sourceData[item.key])
-                : generatorOptions(item, this.sourceData[item.key]),
-            // 使用函数式插槽来渲染 label
-            label: () => h('span', selectedLabel || item.placeholder),
-          },
-        )
-      }
-      const generatorOptionsGroup = (
-        propItem: FlyFormTypes.FormItem,
-        data: any = {},
-      ): any[] => {
-        const res: any[] = []
-        const ElOpGroupComponents = resolveComponent('el-option-group')
-        for (const key in data) {
-          const optionGroup = h(
-            // @ts-ignore
-            ElOpGroupComponents,
-            {
-              label: key,
-            },
+			const generatorSelect = (item: FlyFormTypes.FormItem) => {
+				// @ts-ignore
+				const formRef = this
+				// 优先使用 options，其次使用 sourceData
+				const sourceData = item.options || this.sourceData[item.key] || []
 
-            { default: () => generatorOptions(propItem, data[key]) },
-          )
-          res.push(optionGroup)
-        }
-        return res
-      }
-      const generatorOptions = (
-        propItem: FlyFormTypes.FormItem,
-        data: any[] = [],
-      ): any[] => {
-        const res: any[] = []
-        for (let i = 0; i < data.length; i++) {
-          const item = data[i]
-          const option = h(
-            // @ts-ignore
-            resolveComponent('el-option'),
-            {
-              value: item[propItem.showValue || 'value'],
-            },
-            { default: () => item[propItem.showName || 'label'] },
-          )
-          res.push(option)
-        }
-        return res
-      }
-      const generatorDefaultProps = (item: FlyFormTypes.FormItem) => {
-        return {
-          ref: item.key,
-          modelValue: this.formValues[item.key],
-          'onUpdate:modelValue': (val: any) => {
-            // 更新值
-            this.formValues[item.key] = val
-          },
-          placeholder: item.placeholder,
-        }
-      }
-      const generatorTipsLabel = (item: FlyFormTypes.FormItem) => {
-        return h(
-          'span',
-          {
-            class: 'fly-form-item-tips',
-          },
-          [
-            item.name,
-            h(
-              // @ts-ignore
-              resolveComponent('el-popover'),
-              {
-                placement: 'top-start',
-                title: '提示',
-                width: 200,
-                trigger: 'hover',
-                ...item.tipLabelProps,
-                content: item.tips,
-              },
-              {
-                reference: () =>
-                  h(
-                    // @ts-ignore
-                    resolveComponent('el-icon'),
-                    {
-                      class: 'fly-form-item-tips-icon',
-                    }, // @ts-ignore
-                    { default: () => h(resolveComponent('QuestionFilled')) },
-                  ),
-              },
-            ),
-          ],
-        )
-      }
-      const generatorDefaultEvents = (item: FlyFormTypes.FormItem) => {
-        let defaultEvent = {
-          'onUpdate:modelValue': (val: any) => {
-            this.formValues[item.key] = val
-          },
-        }
-        if (item.effectKeys && item.effectKeys.length > 0) {
-          defaultEvent = {
-            'onUpdate:modelValue': (val: any) => {
-              this.formValues[item.key] = val
-              this.updateRequestSource(item.effectKeys)
-            },
-          }
-        }
-        // 日期组件与其他组件的事件不同
-        if (['el-date-picker'].includes(item.type)) {
-          let event = {
-            'on-change': (val: any) => {
-              this.formValues[item.key] = val
-            },
-          }
-          if (item.effectKeys && item.effectKeys.length > 0) {
-            event = {
-              'on-change': (val: any) => {
-                this.formValues[item.key] = val
-                this.updateRequestSource(item.effectKeys)
-              },
-            }
-          }
-          return event
-        } else {
-          return defaultEvent
-        }
-      }
+				// 获取选中项的label
+				const getSelectedLabel = () => {
+					if (!this.formValues[item.key]) return ''
+
+					if (item.custom && item.custom.group) {
+						// 处理分组数据
+						for (const key in sourceData) {
+							const groupData = sourceData[key]
+							if (Array.isArray(groupData)) {
+								const found = groupData.find(
+									(option: any) =>
+										option[item.showValue || 'value'] === this.formValues[item.key]
+								)
+								if (found) {
+									return found[item.showName || 'label']
+								}
+							}
+						}
+						return ''
+					} else {
+						// 处理非分组数据
+						const sourceDataArray = Array.isArray(sourceData) ? sourceData : []
+						return sourceDataArray.find(
+							(option: any) =>
+								option[item.showValue || 'value'] === this.formValues[item.key]
+						)?.[item.showName || 'label'] || ''
+					}
+				}
+
+				const selectedLabel = getSelectedLabel()
+
+				let defaultEvent = {
+					'onUpdate:modelValue': (val: any) => {
+						this.formValues[item.key] = val
+					},
+				}
+
+				if (item.effectKeys && item.effectKeys.length > 0) {
+					defaultEvent = {
+						'onUpdate:modelValue': (val: any) => {
+							this.formValues[item.key] = val
+							formRef.updateRequestSource(item.effectKeys)
+						},
+					}
+				}
+
+				return h(
+					resolveComponent('el-select'),
+					{
+						modelValue: this.formValues[item.key],
+						placeholder: item.placeholder,
+						...defaultEvent,
+						...item.componentProps,
+						...item.componentEvents,
+					},
+					{
+						default: () =>
+							item.custom && item.custom.group
+								? generatorOptionsGroup(item, sourceData)
+								: generatorOptions(item, Array.isArray(sourceData) ? sourceData : []),
+						label: () => h('span', selectedLabel || item.placeholder),
+					},
+				)
+			}
+			const generatorOptionsGroup = (
+				propItem: FlyFormTypes.FormItem,
+				data: any = {},
+			): any[] => {
+				const res: any[] = []
+				const ElOpGroupComponents = resolveComponent('el-option-group')
+				for (const key in data) {
+					const optionGroup = h(
+						// @ts-ignore
+						ElOpGroupComponents,
+						{
+							label: key,
+						},
+
+						{ default: () => generatorOptions(propItem, data[key]) },
+					)
+					res.push(optionGroup)
+				}
+				return res
+			}
+			const generatorOptions = (
+				propItem: FlyFormTypes.FormItem,
+				data: any[] = [],
+			): any[] => {
+				if (!Array.isArray(data)) {
+					console.warn(`Select options data for key "${propItem.key}" is not an array:`, data)
+					return []
+				}
+
+				return data.map((item) => {
+					const value = item[propItem.showValue || 'value']
+					const label = item[propItem.showName || 'label']
+
+					if (value === undefined) {
+						console.warn(`Option value is undefined for key "${propItem.key}":`, item)
+					}
+
+					const optionProps = {
+						value,
+						key: value,
+						label,
+						disabled: item.disabled,
+						...propItem.optionProps,
+					}
+
+					const slots = propItem.optionSlot && typeof propItem.optionSlot === 'function'
+						? { default: () => propItem.optionSlot!(item, h) }
+						: { default: () => label }
+
+					return h(
+						resolveComponent('el-option'),
+						optionProps,
+						slots
+					)
+				})
+			}
+			const generatorDefaultProps = (item: FlyFormTypes.FormItem) => {
+				return {
+					ref: item.key,
+					modelValue: this.formValues[item.key],
+					'onUpdate:modelValue': (val: any) => {
+						// 更新值
+						this.formValues[item.key] = val
+					},
+					placeholder: item.placeholder,
+				}
+			}
+			const generatorTipsLabel = (item: FlyFormTypes.FormItem) => {
+				return h(
+					'span',
+					{
+						class: 'fly-form-item-tips',
+					},
+					[
+						item.name,
+						h(
+							// @ts-ignore
+							resolveComponent('el-popover'),
+							{
+								placement: 'top-start',
+								title: '提示',
+								width: 200,
+								trigger: 'hover',
+								...item.tipLabelProps,
+								content: item.tips,
+							},
+							{
+								reference: () =>
+									h(
+										// @ts-ignore
+										resolveComponent('el-icon'),
+										{
+											class: 'fly-form-item-tips-icon',
+										}, // @ts-ignore
+										{ default: () => h(resolveComponent('QuestionFilled')) },
+									),
+							},
+						),
+					],
+				)
+			}
+			const generatorDefaultEvents = (item: FlyFormTypes.FormItem) => {
+				let defaultEvent = {
+					'onUpdate:modelValue': (val: any) => {
+						this.formValues[item.key] = val
+					},
+				}
+				if (item.effectKeys && item.effectKeys.length > 0) {
+					defaultEvent = {
+						'onUpdate:modelValue': (val: any) => {
+							this.formValues[item.key] = val
+							this.updateRequestSource(item.effectKeys)
+						},
+					}
+				}
+				// 日期组件与其他组件的事件不同
+				if (['el-date-picker'].includes(item.type)) {
+					let event = {
+						'on-change': (val: any) => {
+							this.formValues[item.key] = val
+						},
+					}
+					if (item.effectKeys && item.effectKeys.length > 0) {
+						event = {
+							'on-change': (val: any) => {
+								this.formValues[item.key] = val
+								this.updateRequestSource(item.effectKeys)
+							},
+						}
+					}
+					return event
+				} else {
+					return defaultEvent
+				}
+			}
+			const generatorUpload = (item: FlyFormTypes.FormItem) => {
+				const slots: Record<string, any> = {}
+
+				// 处理所有可能的插槽
+				if (item.uploadSlots) {
+					if (item.uploadSlots.default) {
+						slots.default = () => item.uploadSlots!.default!(h)
+					}
+					if (item.uploadSlots.trigger) {
+						slots.trigger = () => item.uploadSlots!.trigger!(h)
+					}
+					if (item.uploadSlots.tip) {
+						slots.tip = () => item.uploadSlots!.tip!(h)
+					}
+					if (item.uploadSlots.file) {
+						slots.file = (props: any) => item.uploadSlots!.file!(props, h)
+					}
+					if (item.uploadSlots.fileList) {
+						slots.fileList = (props: any) => item.uploadSlots!.fileList!(props, h)
+					}
+				}
+
+				// 如果没有设置默认插槽，提供一个默认的上传按钮
+				if (!slots.default && !slots.trigger) {
+					slots.default = () => h(
+						resolveComponent('el-button'),
+						{ type: 'primary' },
+						{ default: () => '点击上传' }
+					)
+				}
+
+				return h(
+					resolveComponent('el-upload'),
+					{
+						modelValue: this.formValues[item.key],
+						'onUpdate:modelValue': (val: any) => {
+							this.formValues[item.key] = val
+						},
+						...item.componentProps,
+						...item.componentEvents,
+					},
+					slots
+				)
+			}
       const itemNodes = generatorForm(this.formContent)
 
       const $formProps = props.formProps || {}

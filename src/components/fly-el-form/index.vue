@@ -334,6 +334,10 @@
                   requestParams,
                   ...effectKeysFormValues,
                 })
+							} else {
+								requestParams = requestParams
+									? { requestParams, ...effectKeysFormValues }
+									: effectKeysFormValues
               }
             }
             const res = requestParams

@@ -984,37 +984,6 @@
 				// 优先使用 options，其次使用 sourceData
 				const sourceData = item.options || this.sourceData[item.key] || []
 
-				// 获取选中项的label
-				const getSelectedLabel = () => {
-					if (!this.formValues[item.key]) return ''
-
-					if (item.custom && item.custom.group) {
-						// 处理分组数据
-						for (const key in sourceData) {
-							const groupData = sourceData[key]
-							if (Array.isArray(groupData)) {
-								const found = groupData.find(
-									(option: any) =>
-										option[item.showValue || 'value'] === this.formValues[item.key]
-								)
-								if (found) {
-									return found[item.showName || 'label']
-								}
-							}
-						}
-						return ''
-					} else {
-						// 处理非分组数据
-						const sourceDataArray = Array.isArray(sourceData) ? sourceData : []
-						return sourceDataArray.find(
-							(option: any) =>
-								option[item.showValue || 'value'] === this.formValues[item.key]
-						)?.[item.showName || 'label'] || ''
-					}
-				}
-
-				const selectedLabel = getSelectedLabel()
-
 				let defaultEvent = {
 					'onUpdate:modelValue': (val: any) => {
 						this.formValues[item.key] = val
@@ -1030,21 +999,27 @@
 					}
 				}
 
+				const selectProps = {
+					modelValue: this.formValues[item.key],
+					placeholder: item.placeholder,
+					...defaultEvent,
+					...item.componentProps,
+					...item.componentEvents,
+				}
+
+				// 如果启用了 returnObject，添加 value-key 属性
+				if (item.componentProps?.returnObject) {
+					selectProps['value-key'] = item.showValue || 'value'
+				}
+
 				return h(
 					resolveComponent('el-select'),
-					{
-						modelValue: this.formValues[item.key],
-						placeholder: item.placeholder,
-						...defaultEvent,
-						...item.componentProps,
-						...item.componentEvents,
-					},
+					selectProps,
 					{
 						default: () =>
 							item.custom && item.custom.group
 								? generatorOptionsGroup(item, sourceData)
 								: generatorOptions(item, Array.isArray(sourceData) ? sourceData : []),
-						label: () => h('span', selectedLabel || item.placeholder),
 					},
 				)
 			}
@@ -1078,7 +1053,7 @@
 				}
 
 				return data.map((item) => {
-					const value = item[propItem.showValue || 'value']
+					const value = propItem.componentProps?.returnObject ? item : item[propItem.showValue || 'value']
 					const label = item[propItem.showName || 'label']
 
 					if (value === undefined) {
@@ -1087,15 +1062,15 @@
 
 					const optionProps = {
 						value,
-						key: value,
-						label,
+						key: item[propItem.showValue || 'value'],
+						label: item[propItem.showName || 'label'],
 						disabled: item.disabled,
 						...propItem.optionProps,
 					}
 
 					const slots = propItem.optionSlot && typeof propItem.optionSlot === 'function'
 						? { default: () => propItem.optionSlot!(item, h) }
-						: { default: () => label }
+						: { default: () => item[propItem.showName || 'label'] }
 
 					return h(
 						resolveComponent('el-option'),

@@ -2,6 +2,77 @@
 
 本文档展示如何在 fly-el-form 中使用 Select 分组功能。
 
+
+## 基础分组多选示例
+
+最基本的 Select 分组使用方式：
+
+:::demo
+```vue
+<template>
+  <div class="select-group-demo">
+    <fly-el-form
+      ref="form"
+      :form="formConfig"
+      @submit="handleSubmit"
+    />
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'SelectGroupDemo',
+  data() {
+    return {
+      formConfig: [
+        {
+          name: '分组选择',
+          type: 'el-select',
+          key: 'groupSelect',
+          required: true,
+          requiredType: 'array',
+          componentProps: {
+            clearable: true,
+            placeholder: '请选择',
+            multiple: true,
+						  returnObject: true
+          },
+          custom: { group: true },
+          source: {
+            data: {
+              '热门城市': [
+                { name: '北京', id: 'beijing' },
+                { name: '上海', id: 'shanghai' },
+                { name: '广州', id: 'guangzhou' }
+              ],
+              '华东地区': [
+                { name: '杭州', id: 'hangzhou' },
+                { name: '南京', id: 'nanjing' },
+                { name: '苏州', id: 'suzhou' }
+              ],
+              '华南地区': [
+                { name: '深圳', id: 'shenzhen' },
+                { name: '厦门', id: 'xiamen' },
+                { name: '珠海', id: 'zhuhai' }
+              ]
+            }
+          },
+          showName: 'name',
+          showValue: 'id'
+        }
+      ]
+    }
+  },
+  methods: {
+    handleSubmit(formData) {
+      console.log('表单数据：', formData)
+    }
+  }
+}
+</script>
+```
+:::
+
 ## 基础分组示例
 
 最基本的 Select 分组使用方式：

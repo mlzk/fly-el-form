@@ -88,7 +88,7 @@ export default {
 					required: true,
 					type: 'el-input',
 					key: 'name',
-					value: '',
+					value: '1',
 				},
 				{
 					name: '姓名 textarea',

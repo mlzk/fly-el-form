@@ -1213,12 +1213,22 @@
 				return h(
 					resolveComponent('el-upload'),
 					{
-						modelValue: this.formValues[item.key],
-						'onUpdate:modelValue': (val: any) => {
+						'file-list': this.formValues[item.key],
+						'onUpdate:file-list': (val: any) => {
 							this.formValues[item.key] = val
 						},
 						...item.componentProps,
 						...item.componentEvents,
+						//重写onSuccess事件 如果有onSuccess事件，重新包装onSuccess事件 并且将返回值赋值给formValues
+						'on-success': (response: any, file: any, fileList: any) => {
+							// 如果fileList是数组，则将fileList中的每个文件添加到formValues中
+							if (Array.isArray(fileList)) {
+								this.formValues[item.key] = fileList
+							} else {
+								this.formValues[item.key].push(file)
+							}
+							item.componentEvents?.['on-success']?.(response, file, fileList)
+						},
 					},
 					slots
 				)

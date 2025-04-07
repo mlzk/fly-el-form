@@ -1009,6 +1009,7 @@
 
 				// 如果启用了 returnObject，添加 value-key 属性
 				if (item.componentProps?.returnObject) {
+					// @ts-ignore
 					selectProps['value-key'] = item.showValue || 'value'
 				}
 
@@ -1189,21 +1190,38 @@
 					)
 				}
 
+				// 确保 file-list 是正确格式的数组
+				const formatFileList = (list: any) => {
+					if (!list) return []
+					if (!Array.isArray(list)) return []
+					return list.map(file => {
+						if (typeof file === 'string') {
+							return {
+								name: file,
+								url: file,
+								uid: Date.now() + Math.random()
+							}
+						}
+						return file
+					})
+				}
+
 				return h(
 					resolveComponent('el-upload'),
 					{
-						'file-list': this.formValues[item.key],
+						'file-list': formatFileList(this.formValues[item.key]),
 						'onUpdate:file-list': (val: any) => {
 							this.formValues[item.key] = val
 						},
 						...item.componentProps,
 						...item.componentEvents,
-						//重写onSuccess事件 如果有onSuccess事件，重新包装onSuccess事件 并且将返回值赋值给formValues
 						'on-success': (response: any, file: any, fileList: any) => {
-							// 如果fileList是数组，则将fileList中的每个文件添加到formValues中
 							if (Array.isArray(fileList)) {
 								this.formValues[item.key] = fileList
 							} else {
+								if (!Array.isArray(this.formValues[item.key])) {
+									this.formValues[item.key] = []
+								}
 								this.formValues[item.key].push(file)
 							}
 							item.componentEvents?.['on-success']?.(response, file, fileList)

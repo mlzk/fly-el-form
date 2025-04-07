@@ -454,17 +454,21 @@ export default {
 								code: 200,
 								message: '上传成功',
 								data: {
-									url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100'
-								}
+									url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100',
+								},
 							}
 							const fileInfo = {
 								name: file.name,
 								url: response.data.url,
 								raw: file.raw,
 								size: file.size,
-								status: 'success'
+								status: 'success',
 							}
-							console.log('模拟上传成功，准备调用 onSuccess:', response, fileInfo)
+							console.log(
+								'模拟上传成功，准备调用 onSuccess:',
+								response,
+								fileInfo,
+							)
 							onSuccess(response, fileInfo, [])
 							// 使用 fetch 或其他请求方法上传文件
 							// fetch(this.uploadAction, {
@@ -510,6 +514,150 @@ export default {
 	methods: {
 		handleSubmit(formData) {
 			console.log('表单数据：', formData)
+		},
+	},
+}
+</script>
+
+<style>
+.upload-demo {
+	padding: 20px;
+}
+</style>
+```
+
+:::
+
+## 表单复现
+
+常见的表单复现
+
+:::demo
+
+```vue
+<template>
+	<div class="upload-demo">
+		<fly-el-form ref="form" :form="formConfig" @submit="handleSubmit" />
+		<div>
+			<el-button @click="handleReset">复现数据</el-button>
+		</div>
+	</div>
+</template>
+
+<script>
+import { h, resolveComponent } from 'vue'
+const uploadFile = (formData, rootPath, options) => {
+	return new Promise((resolve, reject) => {
+		console.log('上传文件', formData, rootPath, options)
+		resolve({ code: 200, message: '上传成功' })
+	})
+}
+export default {
+	name: 'UploadDemo',
+	data() {
+		return {
+			formConfig: [
+				{
+					type: 'el-input',
+					key: 'name',
+					name: '姓名',
+					required: true,
+				},
+				{
+					type: 'el-upload',
+					key: 'files',
+					name: '基础上传',
+					required: true,
+					requiredType: 'array',
+					componentProps: {
+						action:
+							'https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15',
+						multiple: true,
+						'show-file-list': true,
+					},
+					componentEvents: {
+						'on-success': (res, file) => {
+							console.log('上传成功:', file.name)
+						},
+					},
+					uploadSlots: {
+						tip: (h) =>
+							h(
+								'div',
+								{ class: 'el-upload__tip' },
+								'只能上传 jpg/png 文件，且不超过 500kb',
+							),
+					},
+				},
+				{
+					type: 'el-upload',
+					key: 'relatedFile',
+					name: '其他相关文件',
+					required: false,
+					componentProps: {
+						multiple: true,
+						'show-file-list': true,
+						httpRequest: async (params) => {
+							try {
+								const rootPath = 'wuliao'
+								const formData = new FormData()
+								formData.append('uploadfile', params.file)
+								formData.append('rootPath', rootPath)
+								const res = await uploadFile(formData, rootPath, {
+									headers: {
+										repeatSubmit: false, // 禁用防重复提交检查
+									},
+								})
+								return res
+							} catch (error) {
+								ElMessage.error('上传失败')
+								params.onError(error)
+							}
+						},
+						componentEvents: {
+							'on-success': (res, file) => {
+								console.log('上传成功:', file)
+							},
+						},
+						uploadSlots: {
+							tip: (h) =>
+								h(
+									'div',
+									{ class: 'el-upload__tip' },
+									'只能上传 jpg/png 文件，且不超过 5000kb',
+								),
+						},
+						colProps: {
+							md: 24,
+							lg: 24,
+							sm: 24,
+							xs: 24,
+						},
+					},
+				},
+			],
+		}
+	},
+	methods: {
+		handleSubmit(formData) {
+			console.log('表单数据：', formData)
+		},
+		handleReset() {
+			this.$refs.form.setFormValues({
+				name: '张三',
+				files: [
+					{
+						name: 'food.jpeg',
+						url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100',
+					},
+				],
+				relatedFile: [
+					{
+						name: 'food.jpeg',
+						url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100',
+					},
+				],
+			})
 		},
 	},
 }

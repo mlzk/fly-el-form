@@ -35,7 +35,9 @@ export default {
             clearable: true,
             placeholder: '请选择',
             multiple: true,
-						  returnObject: true
+            returnObject: true,
+            collapseTagsTooltip: true,
+            collapseTags: true
           },
           custom: { group: true },
           source: {

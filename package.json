@@ -13,12 +13,12 @@
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "hhttps://github.com/mlzk/fly-el-form.git"
+		"url": "https://github.com/mlzk/fly-el-form.git"
 	},
 	"bugs": {
-		"url": "hhttps://github.com/mlzk/fly-el-form/issues"
+		"url": "https://github.com/mlzk/fly-el-form/issues"
 	},
-	"homepage": "hhttps://github.com/mlzk/fly-el-form#readme",
+	"homepage": "https://github.com/mlzk/fly-el-form#readme",
 	"keywords": [
 		"element",
 		"elementPlus",

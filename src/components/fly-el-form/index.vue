@@ -132,7 +132,8 @@
       const formInitValues = ref<Record<string, any>>({})
       const formKeyAndName: Record<string, any> = ref({})
       const FlyFormRef = ref<FormInstance | null>(null)
-      const needOverWriteForm = ref<Record<string, any>>({})
+			const needOverWriteForm = ref<Record<string, any>>({})
+			const needReturnSourceKeys = ref<string[]>([])
       const overWrite = () => {
         if (needOverWriteForm.value) {
           Object.keys(needOverWriteForm.value).forEach((key) => {
@@ -271,7 +272,10 @@
             hasOwnPropertySafely(item.source, 'data') &&
             item.source
           ) {
-            sourceData.value[item.key] = item.source.data
+						sourceData.value[item.key] = item.source.data
+						if (item.source.returnSource) {
+							needReturnSourceKeys.value.push(item.key)
+						}
           } else {
             !hasOwnPropertySafely(sourceData.value, item.key) &&
               (sourceData.value[item.key] = [])
@@ -318,34 +322,31 @@
               effectKeysHandle,
             } = source
 
-            let requestParams = params || null
-            if (effectKeys && effectKeys.length > 0) {
-              // 从this.formValues中取值
-              const effectKeysFormValues: any = {}
-              for (let i = 0; i < effectKeys.length; i++) {
-                effectKeysFormValues[effectKeys[i]] =
-                  formValues.value[effectKeys[i]]
-              }
-              requestParams = requestParams
-                ? { requestParams, ...effectKeysFormValues }
-                : effectKeysFormValues
-              if (effectKeysHandle && typeof effectKeysHandle === 'function') {
-                requestParams = effectKeysHandle({
-                  requestParams,
-                  ...effectKeysFormValues,
-                })
-							} else {
-								requestParams = requestParams
-									? { requestParams, ...effectKeysFormValues }
-									: effectKeysFormValues
-              }
-            }
-            const res = requestParams
-              ? await requestFunction(requestParams)
-              : await requestFunction()
+						let requestParams = params || {}
+						if (effectKeys && effectKeys.length > 0) {
+							// 从this.formValues中取值
+							const effectKeysFormValues: any = {}
+							for (let i = 0; i < effectKeys.length; i++) {
+								effectKeysFormValues[effectKeys[i]] = formValues.value[effectKeys[i]]
+							}
 
-            // 将请求到的数据赋值给sourceData
+							// 合并参数
+							requestParams = { ...requestParams, ...effectKeysFormValues }
 
+							// 如果有自定义处理函数，则使用处理后的结果
+							if (effectKeysHandle && typeof effectKeysHandle === 'function') {
+								requestParams = effectKeysHandle({
+									params: requestParams,
+									formValues: formValues.value,
+									sourceData: sourceData.value,
+									effectKeys: effectKeys
+								})
+							}
+						}
+
+						const res = await requestFunction(requestParams)
+
+						// 将请求到的数据赋值给sourceData
             sourceData.value[item.key] = handle
               ? handle(
                   res,
@@ -390,6 +391,7 @@
         FlyFormRef,
         needOverWriteForm,
         overWrite,
+				needReturnSourceKeys,
       }
     },
 
@@ -397,419 +399,423 @@
       async submit() {
         // @ts-ignore
         const formRef: FormInstance = this.$refs.FlyFormRef
-        await formRef.validate((valid: any, errors: any) => {
-          this.$emit('submit', {
-            valid,
-            formValues: this.formValues,
-          })
+				await formRef.validate((valid: any, errors: any) => {
+					let returnData: {
+						valid: boolean;
+						formValues: Record<string, any>;
+						sourceData?: Record<string, any>;
+					} = {
+						valid,
+						formValues: this.formValues,
+					}
+					// 如果存在额外的数据收集，则将额外的数据收集添加到返回数据中
+					console.log(this.needReturnSourceKeys)
+					if (this.needReturnSourceKeys && this.needReturnSourceKeys.length > 0) {
+						let templateSourceData: Record<string, any> = {}
+						this.needReturnSourceKeys.forEach((key: string) => {
+							templateSourceData[key] = this.sourceData[key]
+						})
+						returnData.sourceData = templateSourceData
+					}
+					this.$emit('submit', returnData)
 
-          if (!valid && this.$props.model === 'search') {
-            const errorMsg: any[] = []
-            const errorNames: any[] = []
+					if (!valid && this.$props.model === 'search') {
+						const errorMsg: any[] = []
+						const errorNames: any[] = []
 
-            Object.keys(errors).forEach((key) => {
-              const item = errors[key][0]
-              errorMsg.push(item.message)
-              errorNames.push(this.formKeyAndName[key])
-            })
+						Object.keys(errors).forEach((key) => {
+							const item = errors[key][0]
+							errorMsg.push(item.message)
+							errorNames.push(this.formKeyAndName[key])
+						})
 
-            // 只依次提示第一个错误
-            if (this.$props.singleStepErrorTip) {
-              ElMessage.error(errorMsg[0])
-            } else {
-              ElMessage.error(
-                `请完善${
-                  errorNames.length > 0 ? errorNames.join('、') : '查询条件'
-                }`,
-              )
-            }
-          }
-        })
-      },
-      /**
-       * 获取组件实例
-       * @param key 生成component的key 同时会填入ref 通过this.$refs[key]调用
-       */
-      getFormRef(key: string) {
-        try {
-          // @ts-ignore
-          const formRef: FormInstance = this.$refs.FlyFormRef
-          return formRef
-        } catch (error) {
-          console.error(error)
-        }
-      },
-      getComponentRefByKey(key: string) {
-        if (key && typeof key === 'string') {
-          try {
-            return this.$refs[key]
-          } catch (error) {
-            console.error(error)
-          }
-        } else {
-          console.error('请传入正确的key')
-          return false
-        }
-      },
-      reset() {
-        // @ts-ignore
-        const formRef: FormInstance = this.$refs.FlyFormRef
-        formRef.resetFields()
-        this.$emit('reset')
-      },
-      // overWrite(data: any) {
-      //   const $this = this
-      //   Object.keys(data).forEach((key) => {
-      //     if (hasOwnPropertySafely($this.formValues, key)) {
-      //       $this.formValues[key] = data[key]
-      //     }
-      //   })
-      // },
-      setFormValues(data: any) {
-        // @ts-ignore
-        const formRef: FormInstance = this.$refs.FlyFormRef
-        if (!data) return console.error('setFormValues error: 请传入正确的数据')
+						// 只依次提示第一个错误
+						if (this.$props.singleStepErrorTip) {
+							ElMessage.error(errorMsg[0])
+						} else {
+							ElMessage.error(
+								`请完善${errorNames.length > 0 ? errorNames.join('、') : '查询条件'
+								}`,
+							)
+						}
+					}
+				})
+			},
+			/**
+			 * 获取组件实例
+			 * @param key 生成component的key 同时会填入ref 通过this.$refs[key]调用
+			 */
+			getFormRef(key: string) {
+				try {
+					// @ts-ignore
+					const formRef: FormInstance = this.$refs.FlyFormRef
+					return formRef
+				} catch (error) {
+					console.error(error)
+				}
+			},
+			getComponentRefByKey(key: string) {
+				if (key && typeof key === 'string') {
+					try {
+						return this.$refs[key]
+					} catch (error) {
+						console.error(error)
+					}
+				} else {
+					console.error('请传入正确的key')
+					return false
+				}
+			},
+			reset() {
+				// @ts-ignore
+				const formRef: FormInstance = this.$refs.FlyFormRef
+				formRef.resetFields()
+				this.$emit('reset')
+			},
+			// overWrite(data: any) {
+			//   const $this = this
+			//   Object.keys(data).forEach((key) => {
+			//     if (hasOwnPropertySafely($this.formValues, key)) {
+			//       $this.formValues[key] = data[key]
+			//     }
+			//   })
+			// },
+			setFormValues(data: any) {
+				// @ts-ignore
+				const formRef: FormInstance = this.$refs.FlyFormRef
+				if (!data) return console.error('setFormValues error: 请传入正确的数据')
 
-        // 使用 nextTick 等待组件完全渲染
-        nextTick(async () => {
-          try {
-            if (formRef) {
-              // 先重置表单
-              await formRef.resetFields()
-              // 更新表单值
-              if (!this.isFirstInit) {
-                  Object.keys(data).forEach((key) => {
-                    if (hasOwnPropertySafely(this.formValues, key)) {
-                    this.formValues[key] = data[key]
-                  }
-                  })
-              } else {
-                // 如果表单实例不存在,保存数据等待初始化完成后设置
-                this.needOverWriteForm = data
-              }
-            }
-          } catch (err) {
-            console.error('setFormValues error:', err)
-          }
-        })
-      },
-      /**
-       * 更新数据源
-       * @param keys
-       */
-      async updateSource(updateArray: any) {
-        if (!updateArray) return console.error('请传入正确的更新数据')
-        let keys: string[] = []
-        if (Array.isArray(updateArray)) {
-          for (let i = 0; i < updateArray.length; i++) {
-            let item = updateArray[i]
-            if (hasOwnPropertySafely(item, 'key')) {
-              if (hasOwnPropertySafely(item, 'value')) {
-                this.sourceData[item.key] = item.value
-              } else {
-                keys.push(item.key)
-              }
-            } else {
-              console.error('请传入正确的更新数据,错误的数据:', item)
-            }
-          }
-          if (keys.length > 0) {
-            await this.updateRequestSource(keys)
-          } else {
-            this.$forceUpdate()
-          }
-        } else {
-          console.error('请传入正确的更新数据')
-        }
-      },
-      /**
-       * 更新数据源
-       * @param keys
-       */
-      async updateRequestSource(keys?: string | string[]) {
-        if (!keys) return
-        let updateRequests: Promise<any>[] = []
-        if (Array.isArray(keys)) {
-          for (let i = 0; i < keys.length; i++) {
-            updateRequests.push(this.requests[keys[i]]())
-          }
-        } else {
-          updateRequests = [this.requests[keys]()]
-        }
-        if (updateRequests.length === 0) {
-          return console.warn('请传入正确的keys')
-        }
-        await Promise.allSettled(updateRequests).catch((err) => {
-          console.warn(err)
-        })
-        this.$forceUpdate()
-      },
-      /**
-       * 设置表单值
-       */
-      setKeyValue(key: string, value: any) {
-        if (hasOwnPropertySafely(this.formValues, key)) {
-          this.formValues[key] = value
-        } else {
-          console.error('表单中不存在' + key + '属性')
-        }
-      },
-      getFormValues() {
-        return this.formValues
-      },
-      clearValidate(data?: any) {
-        // @ts-ignore
-        const formRef: FormInstance = this.$refs.FlyFormRef
-        if (data) {
-          window.requestAnimationFrame(() => {
-            formRef.clearValidate(data)
-          })
-        } else {
-          this.$nextTick(() => {
-            window.requestAnimationFrame(() => {
-              formRef.clearValidate()
-            })
-          })
-        }
-      },
-    },
-    render(props: any) {
-      const generatorFormButton = () => {
-        return h(
-          // @ts-ignore
-          'div',
-          {
-            class: 'fly-form-buttons',
-          },
-          { default: () => generatorFooterButton() },
-        )
-      }
-      const generatorFooterButton = () => {
-        const btns: FlyFormTypes.VNode = {
-          reset: h(
-            resolveComponent('el-button'),
-            {
-              type: 'default',
-              onClick: () => {
-                this.reset()
-              },
-            },
-            {
-              default: () => '重置', // 改为函数形式插槽
-            },
-          ),
-          submit: h(
-            resolveComponent('el-button'),
-            {
-              type: 'primary',
-              onClick: () => {
-                this.submit()
-              },
-            },
-            {
-              default: () =>
-                props.model === 'search'
-                  ? '搜索'
-                  : props.status === 'create'
-                    ? '保存'
-                    : '修改',
-            },
-          ),
-        }
+				// 使用 nextTick 等待组件完全渲染
+				nextTick(async () => {
+					try {
+						if (formRef) {
+							// 先重置表单
+							await formRef.resetFields()
+							// 更新表单值
+							if (!this.isFirstInit) {
+								Object.keys(data).forEach((key) => {
+									if (hasOwnPropertySafely(this.formValues, key)) {
+										this.formValues[key] = data[key]
+									}
+								})
+							} else {
+								// 如果表单实例不存在,保存数据等待初始化完成后设置
+								this.needOverWriteForm = data
+							}
+						}
+					} catch (err) {
+						console.error('setFormValues error:', err)
+					}
+				})
+			},
+			/**
+			 * 更新数据源
+			 * @param keys
+			 */
+			async updateSource(updateArray: any) {
+				if (!updateArray) return console.error('请传入正确的更新数据')
+				let keys: string[] = []
+				if (Array.isArray(updateArray)) {
+					for (let i = 0; i < updateArray.length; i++) {
+						let item = updateArray[i]
+						if (hasOwnPropertySafely(item, 'key')) {
+							if (hasOwnPropertySafely(item, 'value')) {
+								this.sourceData[item.key] = item.value
+							} else {
+								keys.push(item.key)
+							}
+						} else {
+							console.error('请传入正确的更新数据,错误的数据:', item)
+						}
+					}
+					if (keys.length > 0) {
+						await this.updateRequestSource(keys)
+					} else {
+						this.$forceUpdate()
+					}
+				} else {
+					console.error('请传入正确的更新数据')
+				}
+			},
+			/**
+			 * 更新数据源
+			 * @param keys
+			 */
+			async updateRequestSource(keys?: string | string[]) {
+				if (!keys) return
+				let updateRequests: Promise<any>[] = []
+				if (Array.isArray(keys)) {
+					for (let i = 0; i < keys.length; i++) {
+						updateRequests.push(this.requests[keys[i]]())
+					}
+				} else {
+					updateRequests = [this.requests[keys]()]
+				}
+				if (updateRequests.length === 0) {
+					return console.warn('请传入正确的keys')
+				}
+				await Promise.allSettled(updateRequests).catch((err) => {
+					console.warn(err)
+				})
+				this.$forceUpdate()
+			},
+			/**
+			 * 设置表单值
+			 */
+			setKeyValue(key: string, value: any) {
+				if (hasOwnPropertySafely(this.formValues, key)) {
+					this.formValues[key] = value
+				} else {
+					console.error('表单中不存在' + key + '属性')
+				}
+			},
+			getFormValues() {
+				return this.formValues
+			},
+			clearValidate(data?: any) {
+				// @ts-ignore
+				const formRef: FormInstance = this.$refs.FlyFormRef
+				if (data) {
+					window.requestAnimationFrame(() => {
+						formRef.clearValidate(data)
+					})
+				} else {
+					this.$nextTick(() => {
+						window.requestAnimationFrame(() => {
+							formRef.clearValidate()
+						})
+					})
+				}
+			},
+		},
+		render(props: any) {
 
-        if (props.action) {
-          return props.action.map((btn: string) => {
-            // 如果设置了 actionProps
-            if (hasOwnPropertySafely(props.actionProps, btn)) {
-              return h(
-                resolveComponent('el-button'),
-                {
-                  type: 'default',
-                  ...props.actionProps[btn].componentProps,
-                  onClick: () => {
-                    if (['submit', 'reset'].includes(btn)) {
-                      // 执行方法（如 reset 或 submit）
-                      // @ts-ignore
-                      this[btn]()
-                    }
-                  },
-                  ...props.actionProps[btn].componentEvents,
-                },
-                {
-                  default: () => props.actionProps[btn].text || '', // 确保插槽是函数形式
-                },
-              )
-            } else {
-              return btns[btn] // 默认按钮内容
-            }
-          })
-        }
-      }
+			const generatorFooterButton = () => {
+				const btns: FlyFormTypes.VNode = {
+					reset: h(
+						resolveComponent('el-button'),
+						{
+							type: 'default',
+							onClick: () => {
+								this.reset()
+							},
+						},
+						{
+							default: () => '重置', // 改为函数形式插槽
+						},
+					),
+					submit: h(
+						resolveComponent('el-button'),
+						{
+							type: 'primary',
+							onClick: () => {
+								this.submit()
+							},
+						},
+						{
+							default: () =>
+								props.model === 'search'
+									? '搜索'
+									: props.status === 'create'
+										? '保存'
+										: '修改',
+						},
+					),
+				}
 
-      const generatorFooter = () => {
-        // 如果设置了showFooter为false，不显示footer
-        if (!props.showFooter) return
-        return h(
-          // @ts-ignore
-          resolveComponent('el-row'),
-          {
-            ...props.formRowProps,
-            class: 'fly-form-footer',
-            justify: 'end',
-            ...props.footerRowProps,
-          },
-          { default: () => generatorFooterButton() },
-        )
-      }
+				if (props.action) {
+					return props.action.map((btn: string) => {
+						// 如果设置了 actionProps
+						if (hasOwnPropertySafely(props.actionProps, btn)) {
+							return h(
+								resolveComponent('el-button'),
+								{
+									type: 'default',
+									...props.actionProps[btn].componentProps,
+									onClick: () => {
+										if (['submit', 'reset'].includes(btn)) {
+											// 执行方法（如 reset 或 submit）
+											// @ts-ignore
+											this[btn]()
+										}
+									},
+									...props.actionProps[btn].componentEvents,
+								},
+								{
+									default: () => props.actionProps[btn].text || '', // 确保插槽是函数形式
+								},
+							)
+						} else {
+							return btns[btn] // 默认按钮内容
+						}
+					})
+				}
+			}
 
-      const generatorRow = (item: FlyFormTypes.FormItem) => {
-        const itemNodes: any = []
-        if (item.children && item.children.length > 0) {
-          item.children.forEach((it: FlyFormTypes.FormItem) => {
-            if (
-              (hasOwnPropertySafely(it, 'visitable') &&
-                it.visitable &&
-                it.visitable(props.status, this.formValues)) ||
-              (!hasOwnPropertySafely(it, 'visitable') &&
-                hasOwnPropertySafely(it, 'type'))
-            ) {
-              const formit = generatorCol(it)
-              itemNodes.push(formit)
-            }
-          })
-          itemNodes
-        }
-        return h(
-          // @ts-ignore
-          resolveComponent('el-row'),
-          {
-            ...props.formRowProps,
-            ...item.componentProps,
-            class: `fly-form-row ${item.class ? item.class : ''}`,
-            style: {
-              ...item.style,
-            },
-          },
-          { default: () => itemNodes },
-        )
-      }
-      const generatorCol: any = (item: FlyFormTypes.FormItem) => {
+			const generatorFooter = () => {
+				// 如果设置了showFooter为false，不显示footer
+				if (!props.showFooter) return
+				return h(
+					// @ts-ignore
+					resolveComponent('el-row'),
+					{
+						...props.formRowProps,
+						class: 'fly-form-footer',
+						justify: 'end',
+						...props.footerRowProps,
+					},
+					{ default: () => generatorFooterButton() },
+				)
+			}
+
+			const generatorRow = (item: FlyFormTypes.FormItem) => {
+				const itemNodes: any = []
+				if (item.children && item.children.length > 0) {
+					item.children.forEach((it: FlyFormTypes.FormItem) => {
+						if (
+							(hasOwnPropertySafely(it, 'visitable') &&
+								it.visitable &&
+								it.visitable(props.status, this.formValues)) ||
+							(!hasOwnPropertySafely(it, 'visitable') &&
+								hasOwnPropertySafely(it, 'type'))
+						) {
+							const formit = generatorCol(it)
+							itemNodes.push(formit)
+						}
+					})
+					itemNodes
+				}
+				return h(
+					// @ts-ignore
+					resolveComponent('el-row'),
+					{
+						...props.formRowProps,
+						...item.componentProps,
+						class: `fly-form-row ${item.class ? item.class : ''}`,
+						style: {
+							...item.style,
+						},
+					},
+					{ default: () => itemNodes },
+				)
+			}
+			const generatorCol: any = (item: FlyFormTypes.FormItem) => {
 				const colProps = item.colProps ? item.colProps : {}
 				// 判断hidden是否为true
 				// @ts-ignore
 				if (hasOwnPropertySafely(item, 'hidden') && item.hidden) {
 					return null
 				}
-        const layout = h(
-          // @ts-ignore
-          resolveComponent('el-col'),
-          {
-            ...props.formColProps,
-            ...colProps,
-            key: item.key,
-          },
-          { default: () => generatorFormItem(item) },
-        )
-        return layout
-      }
-      const generatorTitle = (item: FlyFormTypes.FormItem) => {
-        const props = item.componentProps ? item.componentProps : {}
+				const layout = h(
+					// @ts-ignore
+					resolveComponent('el-col'),
+					{
+						...props.formColProps,
+						...colProps,
+						key: item.key,
+					},
+					{ default: () => generatorFormItem(item) },
+				)
+				return layout
+			}
+			const generatorTitle = (item: FlyFormTypes.FormItem) => {
+				const props = item.componentProps ? item.componentProps : {}
 
-        return h(
-          resolveComponent('el-row'),
-          {
-            ...props,
-          },
-          [
-            h(
-              'h3',
-              {
-                class: `fly-form-title ${item.class ? item.class : ''}`,
-                style: {
-                  ...item.style,
-                },
-              },
-              {
-                default: () => (item.slot ? item.slot : item.name),
-              },
-            ),
-          ],
-        )
-      }
-      const generatorForm = (data: any): any[] => {
-        if (!data) return []
-        const res: any[] = []
-        for (let i = 0; i < data.length; i++) {
-          const item = data[i]
-          if (['el-row', 'Title'].includes(item.type)) {
-            switch (item.type) {
-              case 'el-row':
-                res.push(generatorRow(item))
-                break
-              case 'Title':
-                res.push(generatorTitle(item))
-                break
-              case 'title':
-                res.push(generatorTitle(item))
-                break
-              default:
-                break
-            }
-          } else {
-            if (
-              (hasOwnPropertySafely(item, 'visitable') &&
-                item.visitable(props.status, this.formValues)) ||
-              !hasOwnPropertySafely(item, 'visitable')
-            ) {
-              const formItem =
-                props.inlineBlock || props.model == 'search'
-                  ? generatorInlineBlock(item)
-                  : generatorBlock(item)
-              res.push(formItem)
-            }
-          }
-        }
-        return res
-      }
-      const generatorInlineBlock = (item: FlyFormTypes.FormItem) => {
-        if (!hasOwnPropertySafely(item, 'hidden')) {
-          return generatorFormItem(item)
-        }
-      }
-      const generatorBlock = (item: FlyFormTypes.FormItem) => {
-        if (!hasOwnPropertySafely(item, 'hidden')) {
-          return h(
-            // @ts-ignore
-            resolveComponent('el-row'),
-            {
-              class: `fly-form-row`,
-            },
-            { default: () => generatorFormItem(item) },
-          )
-        }
-      }
-      const generatorFormItem = (item: FlyFormTypes.FormItem) => {
-        const slotRender = item.tips
-          ? {
-              label: () => generatorTipsLabel(item),
-              default: () => generatorItem(item),
-            }
-          : { default: () => generatorItem(item) }
+				return h(
+					resolveComponent('el-row'),
+					{
+						...props,
+					},
+					[
+						h(
+							'h3',
+							{
+								class: `fly-form-title ${item.class ? item.class : ''}`,
+								style: {
+									...item.style,
+								},
+							},
+							{
+								default: () => (item.slot ? item.slot : item.name),
+							},
+						),
+					],
+				)
+			}
+			const generatorForm = (data: any): any[] => {
+				if (!data) return []
+				const res: any[] = []
+				for (let i = 0; i < data.length; i++) {
+					const item = data[i]
+					if (['el-row', 'Title'].includes(item.type)) {
+						switch (item.type) {
+							case 'el-row':
+								res.push(generatorRow(item))
+								break
+							case 'Title':
+								res.push(generatorTitle(item))
+								break
+							case 'title':
+								res.push(generatorTitle(item))
+								break
+							default:
+								break
+						}
+					} else {
+						if (
+							(hasOwnPropertySafely(item, 'visitable') &&
+								item.visitable(props.status, this.formValues)) ||
+							!hasOwnPropertySafely(item, 'visitable')
+						) {
+							const formItem =
+								props.inlineBlock || props.model == 'search'
+									? generatorInlineBlock(item)
+									: generatorBlock(item)
+							res.push(formItem)
+						}
+					}
+				}
+				return res
+			}
+			const generatorInlineBlock = (item: FlyFormTypes.FormItem) => {
+				if (!hasOwnPropertySafely(item, 'hidden')) {
+					return generatorFormItem(item)
+				}
+			}
+			const generatorBlock = (item: FlyFormTypes.FormItem) => {
+				if (!hasOwnPropertySafely(item, 'hidden')) {
+					return h(
+						// @ts-ignore
+						resolveComponent('el-row'),
+						{
+							class: `fly-form-row`,
+						},
+						{ default: () => generatorFormItem(item) },
+					)
+				}
+			}
+			const generatorFormItem = (item: FlyFormTypes.FormItem) => {
+				const slotRender = item.tips
+					? {
+						label: () => generatorTipsLabel(item),
+						default: () => generatorItem(item),
+					}
+					: { default: () => generatorItem(item) }
 
-        return h(
-          // @ts-ignore
-          resolveComponent('el-form-item'),
-          {
-            key: item.key,
-            prop: item.key,
-            label: item.name,
-            class: `fly-form-item ${item.class ? item.class : ''}`,
-            ...item.formItemProps,
-          },
-          slotRender,
-        )
-      }
-      const generatorItem = (item: FlyFormTypes.FormItem) => {
+				return h(
+					// @ts-ignore
+					resolveComponent('el-form-item'),
+					{
+						key: item.key,
+						prop: item.key,
+						label: item.name,
+						class: `fly-form-item ${item.class ? item.class : ''}`,
+						...item.formItemProps,
+					},
+					slotRender,
+				)
+			}
+			const generatorItem = (item: FlyFormTypes.FormItem) => {
 				switch (item.type) {
 					case 'el-select':
 						return generatorSelect(item)
@@ -1008,7 +1014,7 @@
 				}
 
 				// 如果启用了 returnObject，添加 value-key 属性
-				if (item.componentProps?.returnObject) {
+				if (item.custom?.returnObject) {
 					// @ts-ignore
 					selectProps['value-key'] = item.showValue || 'value'
 				}
@@ -1054,7 +1060,7 @@
 				}
 
 				return data.map((item) => {
-					const value = propItem.componentProps?.returnObject ? item : item[propItem.showValue || 'value']
+					const value = propItem.custom?.returnObject ? item : item[propItem.showValue || 'value']
 					const label = item[propItem.showName || 'label']
 
 					if (value === undefined) {
@@ -1230,49 +1236,49 @@
 					slots
 				)
 			}
-      const itemNodes = generatorForm(this.formContent)
+			const itemNodes = generatorForm(this.formContent)
 
-      const $formProps = props.formProps || {}
-      if (props.model == 'search') {
-        $formProps.inline = true
-      }
-      const FormNode = h(
-        // @ts-ignore
-        resolveComponent('ElForm'),
-        {
-          ref: 'FlyFormRef',
-          model: this.formValues,
-          rules: this.rules,
-          ...$formProps,
-          // 隐藏标签时默认标签位置为顶部
-          labelPosition: $formProps.hideLabel
-            ? 'top'
-            : $formProps.labelPosition,
-          ...props.formEvents,
-        },
-        {
-          default: () => [
-            ...itemNodes,
-            props.model == 'form' ? generatorFooter() : generatorFooterButton(),
-          ],
-        },
-      )
-      return h(
-        'div',
-        {
-          class: `fly-form ${
-            props.formProps && props.formProps.hideLabel
-              ? 'fly-form-hide-label'
-              : ''
-          } ${(props.formProps && props.formProps.class) || ''} ${
-            props.model == 'search' ? 'fly-search' : ''
-          }`,
-        },
+			const $formProps = props.formProps || {}
+			if (props.model == 'search') {
+				$formProps.inline = true
+			}
+			const FormNode = h(
+				// @ts-ignore
+				resolveComponent('ElForm'),
+				{
+					ref: 'FlyFormRef',
+					model: this.formValues,
+					rules: this.rules,
+					...$formProps,
+					// 隐藏标签时默认标签位置为顶部
+					labelPosition: $formProps.hideLabel
+						? 'top'
+						: $formProps.labelPosition,
+					...props.formEvents,
+				},
+				{
+					default: () => [
+						...itemNodes,
+						props.model == 'form' ? generatorFooter() : generatorFooterButton(),
+					],
+				},
+			)
+			return h(
+				'div',
+				{
+					class: `fly-form ${props.formProps && props.formProps.hideLabel
+						? 'fly-form-hide-label'
+						: ''
+						} ${(props.formProps && props.formProps.class) || ''} ${props.model == 'search' ? 'fly-search' : ''
+						}`,
+				},
 
-        FormNode,
-      )
-    },
-  }) as any
+				FormNode,
+			)
+		},
+	}) as any
 
-  export default FlyElForm
+export default FlyElForm
 </script>
+
+

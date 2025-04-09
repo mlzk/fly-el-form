@@ -81,6 +81,10 @@ function getExamplesSidebar() {
 					text: '选项组',
 					link: '/examples/select-group',
 				},
+				{
+					text: '额外数据收集',
+					link: '/examples/extra-data',
+				},
 			],
 		},
 	]

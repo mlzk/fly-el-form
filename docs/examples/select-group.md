@@ -35,11 +35,11 @@ export default {
             clearable: true,
             placeholder: '请选择',
             multiple: true,
-            returnObject: true,
+   
             collapseTagsTooltip: true,
             collapseTags: true
           },
-          custom: { group: true },
+          custom: { group: true, returnObject: true },
           source: {
             data: {
               '热门城市': [

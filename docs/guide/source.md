@@ -98,7 +98,7 @@ const handleReset = () => {
 | params           | object         |          | 数据源的 API 接口静态参数                                                                     |
 | handle           | function       |          | 数据源的处理函数，第一个参数为接口返回的数据,第二个参数为请求参数，第三个参数是 form          |
 | effectKeys       | array          |          | form 中设置为请求参数的 key 集合，作为接口的请求参数参与请求                                  |
-| effectKeysHandle | function       |          | effectKeys 参数值的处理函数返回值作为请求方法的参数                                           |
+| effectKeysHandle | function       |          | effectKeys 参数值的处理函数，接收一个包含以下参数的对象：{ params: 当前请求参数, formValues: 整个表单的值, sourceData: 所有数据源, effectKeys: 当前影响的键值数组 }，返回值作为请求方法的参数 |
 | data             | array          |          | 手动设置的数据源的数据（配合 showName/showValue）requestFunction 的优先级高于 data 设置的数据 |
 
 示例
@@ -239,6 +239,20 @@ const handleReset = () => {
 		source: {
 			effectKeys: ['product'],
 			requestFunction: mockApiRequest,
+			effectKeysHandle: ({ params, formValues, sourceData, effectKeys }) => {
+				// 可以访问整个表单的值
+				console.log('formValues:', formValues)
+				// 可以访问所有数据源
+				console.log('sourceData:', sourceData)
+				// 可以访问当前影响的键值 通过sourceData[key] 获取对应的数据源
+				console.log('effectKeys:', effectKeys)
+				// 可以基于这些信息进行更复杂的参数处理
+				return {
+					...params,
+					// 添加额外的处理逻辑
+					extraParam: 'custom_value'
+				}
+			},
 			handle: (res) => {
 				return res.data
 			},
@@ -334,6 +348,20 @@ originData.value = [
 		source: {
 			effectKeys: ['product'],
 			requestFunction: mockApiRequest,
+			effectKeysHandle: ({ params, formValues, sourceData, effectKeys }) => {
+				// 可以访问整个表单的值
+				console.log('formValues:', formValues)
+				// 可以访问所有数据源
+				console.log('sourceData:', sourceData)
+				// 可以访问当前影响的键值
+				console.log('effectKeys:', effectKeys)
+				// 可以基于这些信息进行更复杂的参数处理
+				return {
+					...params,
+					// 添加额外的处理逻辑
+					extraParam: 'custom_value'
+				}
+			},
 			handle: (res) => {
 				return res.data
 			},

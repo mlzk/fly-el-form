@@ -26,6 +26,11 @@ declare namespace FlyFormTypes {
 			data?: any[]
 			[key: string]: any
 		}
+		//额外的数据获取
+		extraData?: {
+			keys: string[]
+			handler?: (...args: any[]) => any
+		}
 		custom?: {
 			group?: boolean
 			[key: string]: any

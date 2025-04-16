@@ -819,6 +819,7 @@
 			const generatorItem = (item: FlyFormTypes.FormItem) => {
 				switch (item.type) {
 					case 'el-select':
+					case 'el-select-v2':
 						return generatorSelect(item)
 					case 'el-radio-group':
 						return generatorRadioGroup(item)
@@ -1028,14 +1029,21 @@
 					selectProps['value-key'] = item.showValue || 'value'
 				}
 
+				// 如果是 el-select-v2，添加 options 属性
+				if (item.type === 'el-select-v2') {
+					selectProps['options'] = Array.isArray(sourceData) ? sourceData : []
+				}
+
 				return h(
-					resolveComponent('el-select'),
+					resolveComponent(item.type),
 					selectProps,
 					{
 						default: () =>
-							item.custom && item.custom.group
+							item.type === 'el-select' && item.custom && item.custom.group
 								? generatorOptionsGroup(item, sourceData)
-								: generatorOptions(item, Array.isArray(sourceData) ? sourceData : []),
+								: item.type === 'el-select'
+									? generatorOptions(item, Array.isArray(sourceData) ? sourceData : [])
+									: null,
 					},
 				)
 			}

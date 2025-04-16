@@ -84,6 +84,23 @@ declare namespace FlyFormTypes {
 	}
 	interface requireTypes {
 		[key: string]: string
+		'el-select': string
+		'el-select-v2': string
+		'el-input': string
+		'el-input-number': string
+		'el-radio-group': string
+		'el-checkbox-group': string
+		'el-date-picker': string
+		'el-cascader': string
+		'el-transfer': string
+		'el-upload': string
+		'el-switch': string
+		'el-rate': string
+		'el-slider': string
+		'el-time-picker': string
+		'el-time-select': string
+		'el-color-picker': string
+		'el-autocomplete': string
 	}
 	interface FuncTree {
 		[key: string]: () => any

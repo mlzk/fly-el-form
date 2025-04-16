@@ -78,6 +78,14 @@ function getExamplesSidebar() {
 					link: '/examples/upload',
 				},
 				{
+					text: '选择器',
+					link: '/examples/select',
+				},
+				{
+					text: '选择器-v2',
+					link: '/examples/select-v2',
+				},
+				{
 					text: '选项组',
 					link: '/examples/select-group',
 				},

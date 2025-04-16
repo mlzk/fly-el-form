@@ -93,6 +93,32 @@ export default {
 		return {
 			previewUrl: '',
 			formConfig: [
+				   {
+        name: '供应商名称',
+        type: 'el-select',
+        required: true,
+        requiredType: 'number',
+        key: 'enterpriseId',
+        source: {
+          requestFunction: async () => {
+            return new Promise((resolve) => {
+              setTimeout(() => {
+                resolve(
+                   [{ enterpriseId: 1, enterpriseName: '供应商1' }, { enterpriseId: 2, enterpriseName: '供应商2' }]
+                )
+              }, 1000)
+            })
+          },
+        },
+        showValue: 'enterpriseId',
+        showName: 'enterpriseName',
+        colProps: {
+          md: 12,
+          lg: 12,
+          sm: 12,
+          xs: 12,
+        },
+      },
 				{
 					type: 'el-upload',
 					key: 'avatar',
@@ -415,7 +441,7 @@ export default {
 ```vue
 <template>
 	<div class="upload-demo">
-		<fly-el-form ref="form" :form="formConfig" @submit="handleSubmit" />
+		<fly-el-form key="demo-2224" ref="form" :form="formConfig" @submit="handleSubmit" />
 	</div>
 </template>
 
@@ -429,7 +455,7 @@ export default {
 			formConfig: [
 				{
 					type: 'el-upload',
-					key: 'files4',
+					key: 'files2214',
 					name: '基础上传',
 					requiredType: 'array',
 					value: [

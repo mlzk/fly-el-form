@@ -134,92 +134,93 @@
       const FlyFormRef = ref<FormInstance | null>(null)
 			const needOverWriteForm = ref<Record<string, any>>({})
 			const needReturnSourceKeys = ref<string[]>([])
-      const overWrite = () => {
-        if (needOverWriteForm.value) {
-          Object.keys(needOverWriteForm.value).forEach((key) => {
-            if (hasOwnPropertySafely(formValues.value, key)) {
-              formValues.value[key] = needOverWriteForm.value[key]
-            }
-          })
-          needOverWriteForm.value = {}
-        }
-      }
-      const generatorRluesAndRequests = async (form: FlyFormTypes.Form) => {
-        // 如果没有数据直接返回
-        // 递归处理form数据
-        const res = collectFormContent(form)
-        // 优先 rules生成
-        formContent.value = res.formContent
-        rules.value = res.rules
-        requests.value = res.requests
-        // 第一次渲染dom时 form表单初始值
-        if (isFirstInit.value) {
-          // 请求生成
-          const requests = Object.keys(res.requests).map((key: string) => {
-            return res.requests[key as keyof typeof res.requests]()
-          })
-          // form表单初始值 用于重置表单 每次生成新的初始值避免修改form之后重置表单会将用户主动设置的值清空
-          formInitValues.value = Object.assign({}, res.formData)
-          // 执行请求 完成数据源拉取
-          if (requests && requests.length > 0) {
-            await Promise.allSettled(requests).catch((err) => {
-              console.warn(err)
+			const _updateTimeout = ref<NodeJS.Timeout | null>(null)
+			const overWrite = () => {
+				if (needOverWriteForm.value) {
+					Object.keys(needOverWriteForm.value).forEach((key) => {
+						if (hasOwnPropertySafely(formValues.value, key)) {
+							formValues.value[key] = needOverWriteForm.value[key]
+						}
+					})
+					needOverWriteForm.value = {}
+				}
+			}
+			const generatorRluesAndRequests = async (form: FlyFormTypes.Form) => {
+				// 如果没有数据直接返回
+				// 递归处理form数据
+				const res = collectFormContent(form)
+				// 优先 rules生成
+				formContent.value = res.formContent
+				rules.value = res.rules
+				requests.value = res.requests
+				// 第一次渲染dom时 form表单初始值
+				if (isFirstInit.value) {
+					// 请求生成
+					const requests = Object.keys(res.requests).map((key: string) => {
+						return res.requests[key as keyof typeof res.requests]()
+					})
+					// form表单初始值 用于重置表单 每次生成新的初始值避免修改form之后重置表单会将用户主动设置的值清空
+					formInitValues.value = Object.assign({}, res.formData)
+					// 执行请求 完成数据源拉取
+					if (requests && requests.length > 0) {
+						await Promise.allSettled(requests).catch((err) => {
+							console.warn(err)
 						})
-          }
-          // form表单生成
-          formValues.value = Object.assign({}, res.formData)
-          if (needOverWriteForm.value) {
-            // @ts-ignore
-            overWrite(needOverWriteForm.value)
-            needOverWriteForm.value = {}
-          }
-          nextTick(() => {
-            isFirstInit.value = false
-          })
-        }
-        // form表单初始值 用于重置表单 每次生成新的初始值避免修改form之后重置表单会将用户主动设置的值清空
-      }
-      const collectFormContent = (
-        data: FlyFormTypes.FormItem[] = [],
-      ): FlyFormTypes.CollectedFormContent => {
-        const res: FlyFormTypes.CollectedFormContent = {
-          formContent: [],
-          formData: {},
-          rules: {},
-          requests: {},
-        }
-        // 对深度不确定的data数组进行校验要求data下的item必须有key并且key必须为string并且key不能重复
+					}
+					// form表单生成
+					formValues.value = Object.assign({}, res.formData)
+					if (needOverWriteForm.value) {
+						// @ts-ignore
+						overWrite(needOverWriteForm.value)
+						needOverWriteForm.value = {}
+					}
+					nextTick(() => {
+						isFirstInit.value = false
+					})
+				}
+				// form表单初始值 用于重置表单 每次生成新的初始值避免修改form之后重置表单会将用户主动设置的值清空
+			}
+			const collectFormContent = (
+				data: FlyFormTypes.FormItem[] = [],
+			): FlyFormTypes.CollectedFormContent => {
+				const res: FlyFormTypes.CollectedFormContent = {
+					formContent: [],
+					formData: {},
+					rules: {},
+					requests: {},
+				}
+			// 对深度不确定的data数组进行校验要求data下的item必须有key并且key必须为string并且key不能重复
 
-        const inputTips = ['el-input', 'el-input-number']
+				const inputTips = ['el-input', 'el-input-number']
 
-        data.forEach((item: FlyFormTypes.FormItem) => {
-          // 如果设置了key自动设置不同类型默认值
-          if (
-            !hasOwnPropertySafely(item, 'type') &&
-            !hasOwnPropertySafely(item, 'hidden')
-          ) {
-            throw new Error(`form item type is required.`)
-          }
-          if (hasOwnPropertySafely(item, 'key')) {
+				data.forEach((item: FlyFormTypes.FormItem) => {
+					// 如果设置了key自动设置不同类型默认值
+					if (
+						!hasOwnPropertySafely(item, 'type') &&
+						!hasOwnPropertySafely(item, 'hidden')
+					) {
+						throw new Error(`form item type is required.`)
+					}
+					if (hasOwnPropertySafely(item, 'key')) {
 
-            if (hasOwnPropertySafely(formKeyAndName.value, item.key)) {
-              throw new Error(
-                `form item key "${item.key}" is duplicated. Please use another key.`,
-              )
-            } else {
-              formKeyAndName.value[item.key] = item.name
-            }
-            if (item.type === 'el-input-number') {
-              res.formData[item.key] = hasOwnPropertySafely(item, 'value')
-                ? item.value
-                : null
-            } else if (item.type === 'el-checkbox-group') {
-              res.formData[item.key] = hasOwnPropertySafely(item, 'value')
-                ? item.value
-                : []
+						if (hasOwnPropertySafely(formKeyAndName.value, item.key)) {
+							throw new Error(
+								`form item key "${item.key}" is duplicated. Please use another key.`,
+							)
+						} else {
+							formKeyAndName.value[item.key] = item.name
+						}
+						if (item.type === 'el-input-number') {
+							res.formData[item.key] = hasOwnPropertySafely(item, 'value')
+								? item.value
+								: null
+						} else if (item.type === 'el-checkbox-group') {
+							res.formData[item.key] = hasOwnPropertySafely(item, 'value')
+								? item.value
+								: []
 						} else {
 
-              if (
+							if (
 								(hasOwnPropertySafely(item, 'type') &&
 									item.type !== 'el-row' &&
 									item.type !== 'title')
@@ -227,100 +228,99 @@
 								res.formData[item.key] = hasOwnPropertySafely(item, 'value')
 									? item.value
 									: undefined
-              }
-            }
-          }
+							}
+						}
+					}
 
-          // 如果设置了rules自动设置rules
-          if (hasOwnPropertySafely(item, 'rules') && item.rules!.length > 0) {
-            res.rules[item.key] = item.rules
-          }
+					// 如果设置了rules自动设置rules
+					if (hasOwnPropertySafely(item, 'rules') && item.rules!.length > 0) {
+						res.rules[item.key] = item.rules
+					}
 
-          if (item.required) {
-            const requiredType = hasOwnPropertySafely(item, 'requiredType')
-              ? item.requiredType
-              : requireTypes[item.type] || 'string'
+					if (item.required) {
+						const requiredType = hasOwnPropertySafely(item, 'requiredType')
+							? item.requiredType
+							: requireTypes[item.type] || 'string'
 
-            const tips = {
-              required: true,
-              message: `${inputTips.includes(item.type) ? '请填写' : '请选择'}${
-                item.name
-              }`,
-              trigger: 'change',
-              type: requiredType,
-            }
+						const tips = {
+							required: true,
+							message: `${inputTips.includes(item.type) ? '请填写' : '请选择'}${item.name
+								}`,
+							trigger: 'change',
+							type: requiredType,
+						}
 
-            if (
-              hasOwnPropertySafely(res.rules, item.key) &&
-              res.rules[item.key]!.length > 0
-            ) {
-              res.rules[item.key] = [tips, ...res.rules[item.key]!]
-            } else {
-              res.rules[item.key] = [tips]
-            }
-          }
+						if (
+							hasOwnPropertySafely(res.rules, item.key) &&
+							res.rules[item.key]!.length > 0
+						) {
+							res.rules[item.key] = [tips, ...res.rules[item.key]!]
+						} else {
+							res.rules[item.key] = [tips]
+						}
+					}
 
-          if (
-            hasOwnPropertySafely(item, 'source') &&
-            hasOwnPropertySafely(item.source, 'requestFunction')
-          ) {
-            res.requests[item.key] = generatorRequestFunction(item)
-          }
-          // 如果设置了source自动设置传入静态数据源
-          else if (
-            hasOwnPropertySafely(item, 'source') &&
-            hasOwnPropertySafely(item.source, 'data') &&
-            item.source
-          ) {
+					if (
+						hasOwnPropertySafely(item, 'source') &&
+						hasOwnPropertySafely(item.source, 'requestFunction')
+					) {
+						res.requests[item.key] = generatorRequestFunction(item)
+					}
+					// 如果设置了source自动设置传入静态数据源
+					else if (
+						hasOwnPropertySafely(item, 'source') &&
+						hasOwnPropertySafely(item.source, 'data') &&
+						item.source
+					) {
 						sourceData.value[item.key] = item.source.data
 						if (item.source.returnSource) {
 							needReturnSourceKeys.value.push(item.key)
 						}
-          } else {
-            !hasOwnPropertySafely(sourceData.value, item.key) &&
-              (sourceData.value[item.key] = [])
-          }
+					} else {
+						!hasOwnPropertySafely(sourceData.value, item.key) &&
+							(sourceData.value[item.key] = [])
+					}
 
-          // 如果没有placeholder自动生成
-          if (!item.placeholder) {
-            item.placeholder =
-              (inputTips.includes(item.type) ? '请填写' : '请选择') + item.name
-          }
+					// 如果没有placeholder自动生成
+					if (!item.placeholder) {
+						item.placeholder =
+							(inputTips.includes(item.type) ? '请填写' : '请选择') + item.name
+					}
 
-          // 剪除source属性，初始化之后不再允许通过修改source属性来修改数据源，因为source属性是用来生成请求的且只能生成一次，如需调整指定数据源，可以通过修改source.data属性来
-          const mItem: FlyFormTypes.FormItem = { ...item }
-          if (hasOwnPropertySafely(mItem, 'source')) {
-            delete mItem.source
-          }
+					// 剪除source属性，初始化之后不再允许通过修改source属性来修改数据源，因为source属性是用来生成请求的且只能生成一次，如需调整指定数据源，可以通过修改source.data属性来
+					const mItem: FlyFormTypes.FormItem = { ...item }
+					if (hasOwnPropertySafely(mItem, 'source')) {
+						delete mItem.source
+					}
 
-          if (
-            item.type === 'el-row' &&
-            hasOwnPropertySafely(item, 'children') &&
-            item.children!.length > 0
-          ) {
-            const cRes = collectFormContent(item.children!)
-            res.rules = { ...res.rules, ...cRes.rules }
-            res.formData = { ...res.formData, ...cRes.formData }
-            res.requests = { ...res.requests, ...cRes.requests }
-            mItem.children = cRes.formContent
-          }
+					if (
+						item.type === 'el-row' &&
+						hasOwnPropertySafely(item, 'children') &&
+						item.children!.length > 0
+					) {
+						const cRes = collectFormContent(item.children!)
+						res.rules = { ...res.rules, ...cRes.rules }
+						res.formData = { ...res.formData, ...cRes.formData }
+						res.requests = { ...res.requests, ...cRes.requests }
+						mItem.children = cRes.formContent
+					}
 
-          res.formContent.push(mItem)
-        })
+					res.formContent.push(mItem)
+				})
 
-        return res
-      }
-      const generatorRequestFunction = (item: FlyFormTypes.FormItem) => {
-        const source: any = item.source
-        return async function () {
-          try {
-            const {
-              requestFunction,
-              params,
-              handle,
-              effectKeys,
-              effectKeysHandle,
-            } = source
+				return res
+			}
+			const generatorRequestFunction = (item: FlyFormTypes.FormItem) => {
+				const source: any = item.source
+				return async function () {
+					try {
+						const {
+							requestFunction,
+							params,
+							handle,
+							effectKeys,
+							effectKeysHandle,
+						} = source
 
 						let requestParams = params || {}
 						if (effectKeys && effectKeys.length > 0) {
@@ -347,58 +347,59 @@
 						const res = await requestFunction(requestParams)
 
 						// 将请求到的数据赋值给sourceData
-            sourceData.value[item.key] = handle
-              ? handle(
-                  res,
-                  requestParams,
-                  formValues.value || formInitValues.value,
-                )
-              : res
-            return res
-          } catch (err) {
-            // 返回一个错误对象
-            console.error(err)
-            return { error: err }
-          }
-        }
-      }
+						sourceData.value[item.key] = handle
+							? handle(
+								res,
+								requestParams,
+								formValues.value || formInitValues.value,
+							)
+							: res
+						return res
+					} catch (err) {
+						// 返回一个错误对象
+						console.error(err)
+						return { error: err }
+					}
+				}
+			}
 
-      // 执行初始化
-      generatorRluesAndRequests(props.form as any)
-      // 监听表单数据变化
-      // @ts-ignore
-      watch(
-        // @ts-ignore
-        props.form,
-        async (newVal, oldVal: FlyFormTypes.Form) => {
-          // @ts-ignore
-          await generatorRluesAndRequests(newVal)
-        },
-        {
-          deep: true,
-        },
-      )
+			// 执行初始化
+			generatorRluesAndRequests(props.form as any)
+			// 监听表单数据变化
+			// @ts-ignore
+			watch(
+				// @ts-ignore
+				props.form,
+				async (newVal, oldVal: FlyFormTypes.Form) => {
+					// @ts-ignore
+					await generatorRluesAndRequests(newVal)
+				},
+				{
+					deep: true,
+				},
+			)
 
-      return {
-        isFirstInit,
-        formContent,
-        requests,
-        rules,
-        sourceData,
-        formInitValues,
-        formKeyAndName,
-        formValues,
-        FlyFormRef,
-        needOverWriteForm,
-        overWrite,
+			return {
+				isFirstInit,
+				formContent,
+				requests,
+				rules,
+				sourceData,
+				formInitValues,
+				formKeyAndName,
+				formValues,
+				FlyFormRef,
+				needOverWriteForm,
+				overWrite,
 				needReturnSourceKeys,
-      }
-    },
+				_updateTimeout,
+			}
+		},
 
-    methods: {
-      async submit() {
-        // @ts-ignore
-        const formRef: FormInstance = this.$refs.FlyFormRef
+		methods: {
+			async submit() {
+				// @ts-ignore
+				const formRef: FormInstance = this.$refs.FlyFormRef
 				await formRef.validate((valid: any, errors: any) => {
 					let returnData: {
 						valid: boolean;
@@ -1000,7 +1001,15 @@
 					defaultEvent = {
 						'onUpdate:modelValue': (val: any) => {
 							this.formValues[item.key] = val
-							formRef.updateRequestSource(item.effectKeys)
+							// 使用 nextTick 和防抖来避免立即更新
+							nextTick(() => {
+								if (!this._updateTimeout) {
+									this._updateTimeout = setTimeout(() => {
+										formRef.updateRequestSource(item.effectKeys)
+										this._updateTimeout = null
+									}, 100)
+								}
+							})
 						},
 					}
 				}
@@ -1212,23 +1221,28 @@
 					})
 				}
 
+				const currentFileList = ref(formatFileList(this.formValues[item.key]))
+
 				return h(
 					resolveComponent('el-upload'),
 					{
-						'file-list': formatFileList(this.formValues[item.key]),
+						'file-list': currentFileList.value,
 						'onUpdate:file-list': (val: any) => {
+							currentFileList.value = val
 							this.formValues[item.key] = val
 						},
 						...item.componentProps,
 						...item.componentEvents,
 						'on-success': (response: any, file: any, fileList: any) => {
 							if (Array.isArray(fileList)) {
+								currentFileList.value = fileList
 								this.formValues[item.key] = fileList
 							} else {
-								if (!Array.isArray(this.formValues[item.key])) {
-									this.formValues[item.key] = []
+								if (!Array.isArray(currentFileList.value)) {
+									currentFileList.value = []
 								}
-								this.formValues[item.key].push(file)
+								currentFileList.value.push(file)
+								this.formValues[item.key] = currentFileList.value
 							}
 							item.componentEvents?.['on-success']?.(response, file, fileList)
 						},

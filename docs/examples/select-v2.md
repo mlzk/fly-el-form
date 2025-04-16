@@ -169,52 +169,44 @@ export default {
               }
             ]
           },
-          componentProps: {
-            renderOption: (item) => {
-              return h('div', {
+          optionSlot: ({ item }, h) => {
+            return h('div', {
+              style: {
+                display: 'flex',
+                alignItems: 'center',
+              }
+            }, [
+
+              h('div', {
                 style: {
-                  display: 'flex',
-                  alignItems: 'center',
-                  padding: '8px 12px'
+                  flex: 1,
+									display:'flex',
+									alignItems:'center',
+									justifyContent:'space-between'
                 }
               }, [
-                h('img', {
-                  src: item.image,
-                  style: {
-                    width: '40px',
-                    height: '40px',
-                    marginRight: '12px',
-                    borderRadius: '4px'
-                  }
-                }),
                 h('div', {
                   style: {
-                    flex: 1
+                    fontSize: '14px',
+                    color: '#fb5050'
+                  }
+                }, item.label),
+                h('div', {
+                  style: {
+                    fontSize: '12px',
+                    color: '#909399',
+                    marginTop: '4px'
                   }
                 }, [
-                  h('div', {
+                  h('span', `¥${item.price}`),
+                  h('span', {
                     style: {
-                      fontSize: '14px',
-                      color: '#303133'
+                      marginLeft: '12px'
                     }
-                  }, item.label),
-                  h('div', {
-                    style: {
-                      fontSize: '12px',
-                      color: '#909399',
-                      marginTop: '4px'
-                    }
-                  }, [
-                    h('span', `¥${item.price}`),
-                    h('span', {
-                      style: {
-                        marginLeft: '12px'
-                      }
-                    }, `库存: ${item.stock}`)
-                  ])
+                  }, `库存: ${item.stock}`)
                 ])
               ])
-            }
+            ])
           }
         }
       ]
@@ -236,7 +228,7 @@ export default {
 ```
 :::
 
-### 多选与标签自定义
+### 分组选项
 
 :::demo
 ```vue
@@ -251,50 +243,44 @@ export default {
 </template>
 
 <script>
-import { h } from 'vue'
-
 export default {
-  name: 'SelectV2MultipleDemo',
+  name: 'SelectV2GroupDemo',
   data() {
     return {
       formConfig: [
         {
-          name: '技能选择',
+          name: '城市选择',
           type: 'el-select-v2',
-          key: 'skills',
-          componentProps: {
-            multiple: true,
-            collapseTags: true,
-            collapseTagsTooltip: true,
-            renderTag: (item) => {
-              return h('div', {
-                style: {
-                  display: 'flex',
-                  alignItems: 'center',
-                  backgroundColor: '#f0f2f5',
-                  borderRadius: '4px',
-                  padding: '2px 8px',
-                  margin: '2px'
-                }
-              }, [
-                h('span', {
-                  style: {
-                    color: '#409eff',
-                    marginRight: '4px'
-                  }
-                }, '✓'),
-                h('span', item.label)
-              ])
-            }
-          },
+          key: 'city',
           source: {
             data: [
-              { value: 'vue', label: 'Vue.js' },
-              { value: 'react', label: 'React' },
-              { value: 'angular', label: 'Angular' },
-              { value: 'node', label: 'Node.js' },
-              { value: 'python', label: 'Python' },
-              { value: 'java', label: 'Java' }
+              {
+                label: '一线城市',
+                options: [
+                  { value: 'beijing', label: '北京' },
+                  { value: 'shanghai', label: '上海' },
+                  { value: 'guangzhou', label: '广州' },
+                  { value: 'shenzhen', label: '深圳' }
+                ]
+              },
+              {
+                label: '新一线城市',
+                options: [
+                  { value: 'chengdu', label: '成都' },
+                  { value: 'hangzhou', label: '杭州' },
+                  { value: 'chongqing', label: '重庆' },
+                  { value: 'wuhan', label: '武汉' }
+                ]
+              },
+              {
+                label: '二线城市',
+                options: [
+                  { value: 'xiamen', label: '厦门' },
+                  { value: 'qingdao', label: '青岛' },
+                  { value: 'dalian', label: '大连' },
+                  { value: 'ningbo', label: '宁波' }
+                ]
+              }
             ]
           }
         }

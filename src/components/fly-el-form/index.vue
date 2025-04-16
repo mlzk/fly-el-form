@@ -1015,7 +1015,7 @@
 					}
 				}
 
-				const selectProps = {
+				const selectProps: Record<string, any> = {
 					modelValue: this.formValues[item.key],
 					placeholder: item.placeholder,
 					...defaultEvent,
@@ -1034,17 +1034,30 @@
 					selectProps['options'] = Array.isArray(sourceData) ? sourceData : []
 				}
 
+				// 处理 select-v2 的 option 插槽
+				const slots: Record<string, any> = {}
+				if (item.type === 'el-select-v2' && item.optionSlot) {
+					slots.default = (props: any) => {
+						return item.optionSlot!(props, h)
+					}
+				}
+				let defaultProps: Record<string, any> = {
+					default: () => null
+				}
+
+				if (item.type === 'el-select-v2') {
+					defaultProps.default = (optionItem: any) => item.optionSlot ? item.optionSlot!(optionItem, h) : null
+				} else if (item.type === 'el-select') {
+					defaultProps.default = () =>
+						item.custom?.group
+							? generatorOptionsGroup(item, sourceData)
+							: generatorOptions(item, Array.isArray(sourceData) ? sourceData : [])
+				}
+
 				return h(
 					resolveComponent(item.type),
 					selectProps,
-					{
-						default: () =>
-							item.type === 'el-select' && item.custom && item.custom.group
-								? generatorOptionsGroup(item, sourceData)
-								: item.type === 'el-select'
-									? generatorOptions(item, Array.isArray(sourceData) ? sourceData : [])
-									: null,
-					},
+					defaultProps
 				)
 			}
 			const generatorOptionsGroup = (
@@ -1071,7 +1084,7 @@
 				propItem: FlyFormTypes.FormItem,
 				data: any[] = [],
 			): any[] => {
-				if (!Array.isArray(data)) {
+				if (!Array.isArray(data) && !propItem.custom?.group) {
 					console.warn(`Select options data for key "${propItem.key}" is not an array:`, data)
 					return []
 				}
@@ -1092,6 +1105,7 @@
 						...propItem.optionProps,
 					}
 
+
 					const slots = propItem.optionSlot && typeof propItem.optionSlot === 'function'
 						? { default: () => propItem.optionSlot!(item, h) }
 						: { default: () => item[propItem.showName || 'label'] }
@@ -1101,6 +1115,7 @@
 						optionProps,
 						slots
 					)
+
 				})
 			}
 			const generatorDefaultProps = (item: FlyFormTypes.FormItem) => {

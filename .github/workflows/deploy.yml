@@ -26,12 +26,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
+      - name: Setup pnpm
+        run: npm install -g pnpm  # 安装 pnpm
       - name: Install dependencies
-        run: npm ci --no-audit --no-fund
+        run: pnpm install  # 使用 pnpm 安装依赖
       - name: Build with VitePress
-        run: npm run docs:build
+        run: pnpm run docs:build  # 使用 pnpm 运行构建
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

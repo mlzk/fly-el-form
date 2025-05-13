@@ -134,7 +134,7 @@
       const FlyFormRef = ref<FormInstance | null>(null)
 			const needOverWriteForm = ref<Record<string, any>>({})
 			const needReturnSourceKeys = ref<string[]>([])
-			const _updateTimeout = ref<NodeJS.Timeout | null>(null)
+			const updateTimeout = ref<NodeJS.Timeout | null>(null)
 			const overWrite = () => {
 				if (needOverWriteForm.value) {
 					Object.keys(needOverWriteForm.value).forEach((key) => {
@@ -392,7 +392,7 @@
 				needOverWriteForm,
 				overWrite,
 				needReturnSourceKeys,
-				_updateTimeout,
+				updateTimeout,
 			}
 		},
 
@@ -1004,10 +1004,10 @@
 							this.formValues[item.key] = val
 							// 使用 nextTick 和防抖来避免立即更新
 							nextTick(() => {
-								if (!this._updateTimeout) {
-									this._updateTimeout = setTimeout(() => {
+								if (!this.updateTimeout) {
+									this.updateTimeout = setTimeout(() => {
 										formRef.updateRequestSource(item.effectKeys)
-										this._updateTimeout = null
+										this.updateTimeout = null
 									}, 100)
 								}
 							})

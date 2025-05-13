@@ -1032,6 +1032,7 @@
 				// 如果是 el-select-v2，添加 options 属性
 				if (item.type === 'el-select-v2') {
 					selectProps['options'] = Array.isArray(sourceData) ? sourceData : []
+					selectProps['key'] = `${item.key}-${Date.now()}`;
 				}
 
 				// 处理 select-v2 的 option 插槽

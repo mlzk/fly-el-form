@@ -89,6 +89,10 @@ function getExamplesSidebar() {
 					text: '额外数据收集',
 					link: '/examples/extra-data',
 				},
+				{
+					text: '数据更新机制',
+					link: '/examples/update-mechanism',
+				},
 			],
 		},
 	]

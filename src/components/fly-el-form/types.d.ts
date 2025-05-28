@@ -63,6 +63,7 @@ declare namespace FlyFormTypes {
 		formData: Record<string, any>
 		rules: Record<string, any>
 		requests: Record<string, RequestFunc>
+		formKeyAndName: Record<string, string>
 	}
 	type Form = FormItem[]
 

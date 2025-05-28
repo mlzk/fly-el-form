@@ -90,7 +90,7 @@ function getExamplesSidebar() {
 					link: '/examples/extra-data',
 				},
 				{
-					text: '数据更新机制',
+					text: '表单结构更新',
 					link: '/examples/update-mechanism',
 				},
 			],

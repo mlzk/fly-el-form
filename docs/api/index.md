@@ -163,16 +163,15 @@
 
 ## Source
 
-| 参数名称         | 类型           | 是否必选 | 说明                                                                                          |
-
-| :--------------- | :------------- | :------- | :-------------------------------------------------------------------------------------------- |
-| requestFunction  | async function |          | 获取数据的异步函数                                                                            |
-| params           | object         |          | 数据源的 API 接口静态参数                                                                     |
-| handle           | function       |          | 数据源的处理函数，第一个参数为接口返回的数据,第二个参数为请求参数，第三个参数是 form          |
-| effectKeys       | array          |          | form 中设置为请求参数的 key 集合，作为接口的请求参数参与请求                                                        |
-| effectKeysHandle | function       |          | effectKeys 参数值的处理函数返回值作为请求方法的参数                                           |
-| data             | array          |          | 手动设置的数据源的数据（配合 showName/showValue）requestFunction 的优先级高于 data 设置的数据 |
-| returnSource     | boolean        |          | 是否返回数据源                                                                                  |
+| 参数名称 | 类型 | 是否必选 | 说明 |
+| :------- | :--- | :------- | :--- |
+| requestFunction | async function | | 获取数据的异步函数 |
+| params | object | | 数据源的 API 接口静态参数 |
+| handle | function | | 数据源的处理函数，第一个参数为接口返回的数据,第二个参数为请求参数，第三个参数是 form |
+| effectKeys | array | | form 中设置为请求参数的 key 集合，作为接口的请求参数参与请求 |
+| effectKeysHandle | function | | effectKeys 参数值的处理函数返回值作为请求方法的参数 |
+| data | array | | 手动设置的数据源的数据（配合 showName/showValue）requestFunction 的优先级高于 data 设置的数据 |
+| returnSource | boolean | | 是否返回数据源 |
 
 ### Data
 

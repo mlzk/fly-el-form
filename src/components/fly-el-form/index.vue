@@ -173,19 +173,20 @@ const FlyElForm = defineComponent({
       // formContent.value = res.formContent
       // 1. 增量更新 rules (保持不变)
       const newRules = res.rules
-      const oldRulesKeys = Object.keys(rules)
+      const oldRulesKeys = Object.keys(rules.value)
       oldRulesKeys.forEach((key) => {
         if (!hasOwnPropertySafely(newRules, key)) {
-          delete rules[key]
+          delete rules.value[key]
         }
       })
       for (const key in newRules) {
         if (hasOwnPropertySafely(newRules, key)) {
           if (
-            !hasOwnPropertySafely(rules, key) ||
-            !isEqual(rules[key], newRules[key])
+            !hasOwnPropertySafely(rules.value, key) ||
+            !isEqual(rules.value[key], newRules[key])
           ) {
-            rules[key] = newRules[key]
+            console.log(key, newRules[key])
+            rules.value[key] = newRules[key]
           }
         }
       }
@@ -458,6 +459,17 @@ const FlyElForm = defineComponent({
       {
         deep: true,
       }
+    )
+
+    // 监听 rules 变化
+    watch(
+      () => rules.value,
+      (newRules) => {
+        if (FlyFormRef.value) {
+          FlyFormRef.value.clearValidate()
+        }
+      },
+      { deep: true }
     )
 
     return {

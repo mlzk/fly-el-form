@@ -8,6 +8,8 @@ import { useComponents } from './useComponents'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import labelItem from './components/label-item.vue'
 import zhCn from 'element-plus/es/locale/lang/zh-cn'
+import demoComponent from './components/demo-component.vue'
+
 import './custom.scss'
 export default {
 	...DefaultTheme,
@@ -22,5 +24,6 @@ export default {
 			ctx.app.component(key, component)
 		}
 		ctx.app.component('label-item', labelItem)
+		ctx.app.component('demo-component', demoComponent)
 	},
 }

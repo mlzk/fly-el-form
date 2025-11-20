@@ -93,6 +93,10 @@ function getExamplesSidebar() {
 					text: '表单结构更新',
 					link: '/examples/update-mechanism',
 				},
+				{
+					text: 'form子组件 ref 获取',
+					link: '/examples/custom-component',
+				},
 			],
 		},
 	]

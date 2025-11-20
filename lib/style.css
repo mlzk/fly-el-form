@@ -1,1 +1,123 @@
-.fly-form{position:relative}.fly-form .el-form{padding:0}.fly-form .el-form .el-row{margin-bottom:5px}.fly-form .el-form .el-row .el-col .el-form-item{width:100%}.fly-form .el-form .el-row .el-col:last-child{padding-right:0}.fly-form .el-form .el-row .el-col .el-input-number,.fly-form .el-form .el-row .el-col .el-cascader,.fly-form .el-form .el-row .el-col .el-date-picker,.fly-form .el-form .el-row .el-col .el-date-editor--date,.fly-form .el-form .fly-form-row{width:100%}.fly-form .el-form .fly-form-row>.fly-form-item{width:100%}.fly-form .el-form--inline .el-date-editor.el-input,.fly-form .el-form--inline .el-date-editor.el-input__inner{width:200px}.fly-form .el-form--inline .el-form-item{width:200px;margin-right:12px}.fly-form .ivu-cascader{line-height:inherit}.fly-form .ivu-input-number{width:100%!important}.fly-form .ivu-select-input{background-color:#041538!important;height:30px!important;color:#fff!important}.fly-form .ivu-input-word-count{background:none}.fly-form .ivu-input-type-textarea .ivu-input{height:auto!important}.fly-form-footer{padding:0 10px}.fly-form-footer .el-button{margin:0 5px}.fly-form-footer .el-button.last-child{margin-right:0}.my-form-spin-icon-load{animation:ani-form-spin 1s linear infinite}@keyframes ani-form-spin{0%{transform:rotate(0)}50%{transform:rotate(180deg)}to{transform:rotate(360deg)}}.fly-form-hide-label .el-form-item__label{display:none!important}.ivu-form-label-top .el-form-item__label{text-align:left!important}.ivu-form-label-top .ivu-form-item-content{margin-left:0!important}.ivu-form-label-right .el-form-item__label{text-align:right!important}.fly-search .el-form-item{margin-bottom:0}.fly-search .ivu-form-item-error .ivu-select-arrow{color:#808695}.fly-search .ivu-form-item-error-tip{display:none}.fly-form-title{margin:5px 0!important}.fly-form-buttons{display:inline-flex;width:auto!important}.fly-form-buttons .el-button:last-child{margin-right:0}.fly-form-item-tips{display:inline-flex;align-items:center}.fly-form-item-tips .fly-form-item-tips-icon{margin-left:5px;cursor:pointer}
+.fly-form {
+  position: relative;
+}
+.fly-form .el-form {
+  padding: 0;
+}
+.fly-form .el-form .el-row {
+  margin-bottom: 5px;
+}
+.fly-form .el-form .el-row .el-col .el-form-item {
+  width: 100%;
+}
+.fly-form .el-form .el-row .el-col:last-child {
+  padding-right: 0;
+}
+.fly-form .el-form .el-row .el-col .el-input-number,
+.fly-form .el-form .el-row .el-col .el-cascader,
+.fly-form .el-form .el-row .el-col .el-date-picker,
+.fly-form .el-form .el-row .el-col .el-date-editor--date {
+  width: 100%;
+}
+.fly-form .el-form .fly-form-row {
+  width: 100%;
+}
+.fly-form .el-form .fly-form-row > .fly-form-item {
+  width: 100%;
+}
+.fly-form .el-form--inline .el-date-editor.el-input,
+.fly-form .el-form--inline .el-date-editor.el-input__inner {
+  width: 200px;
+}
+.fly-form .el-form--inline .el-form-item {
+  width: 200px;
+  margin-right: 12px;
+}
+.fly-form .ivu-cascader {
+  line-height: inherit;
+}
+.fly-form .ivu-input-number {
+  width: 100% !important;
+}
+.fly-form .ivu-select-input {
+  background-color: #041538 !important;
+  height: 30px !important;
+  color: #fff !important;
+}
+.fly-form .ivu-input-word-count {
+  background: none;
+}
+.fly-form .ivu-input-type-textarea .ivu-input {
+  height: auto !important;
+}
+
+.fly-form-footer {
+  padding: 0 10px;
+}
+.fly-form-footer .el-button {
+  margin: 0 5px;
+}
+.fly-form-footer .el-button.last-child {
+  margin-right: 0;
+}
+
+.my-form-spin-icon-load {
+  animation: ani-form-spin 1s linear infinite;
+}
+
+@keyframes ani-form-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(180deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.fly-form-hide-label .el-form-item__label {
+  display: none !important;
+}
+
+.ivu-form-label-top .el-form-item__label {
+  text-align: left !important;
+}
+.ivu-form-label-top .ivu-form-item-content {
+  margin-left: 0 !important;
+}
+
+.ivu-form-label-right .el-form-item__label {
+  text-align: right !important;
+}
+
+.fly-search .el-form-item {
+  margin-bottom: 0px;
+}
+.fly-search .ivu-form-item-error .ivu-select-arrow {
+  color: #808695;
+}
+.fly-search .ivu-form-item-error-tip {
+  display: none;
+}
+
+.fly-form-title {
+  margin: 5px 0 !important;
+}
+
+.fly-form-buttons {
+  display: inline-flex;
+  width: auto !important;
+}
+.fly-form-buttons .el-button:last-child {
+  margin-right: 0;
+}
+
+.fly-form-item-tips {
+  display: inline-flex;
+  align-items: center;
+}
+.fly-form-item-tips .fly-form-item-tips-icon {
+  margin-left: 5px;
+  cursor: pointer;
+}

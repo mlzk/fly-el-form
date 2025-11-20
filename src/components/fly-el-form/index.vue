@@ -17,8 +17,11 @@ import {
 	inject,
 	type Ref,
 } from 'vue'
-// 创建表单上下文符号
-export const FormValuesSymbol = Symbol('formValues')
+// 导入 useFormValues
+import { FormValuesSymbol, useFormValues } from '../../composables/useFormValues'
+
+// 导出 useFormValues
+export { useFormValues }
 
 const FlyElForm = defineComponent({
 	name: 'FlyElForm',
@@ -1438,13 +1441,6 @@ const FlyElForm = defineComponent({
 		)
 	},
 }) as any
-// 创建用于子组件注入表单值的组合式函数
-export function useFormValues(): Ref<Record<string, any>> {
-	const formValues = inject(FormValuesSymbol)
-	if (!formValues) {
-		throw new Error('useFormValues must be used within FlyElForm')
-	}
-	return formValues as Ref<Record<string, any>>
-}
+
 export default FlyElForm
 </script>

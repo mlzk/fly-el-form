@@ -5,30 +5,31 @@ import { resolve } from 'path'
 export default defineConfig({
 	plugins: [vue()],
 	build: {
-		outDir: 'lib', // 输出到 lib 目录
+		outDir: 'lib',
 		lib: {
-			// 指定组件库入口文件
 			entry: resolve(__dirname, 'src/index.js'),
-			name: 'FlyElForm', // UMD 全局变量名
-			formats: ['es', 'umd'], // 输出模块格式
-			fileName: (format) => `fly-el-form.${format}.js`, // 输出文件名规则
+			name: 'FlyElForm',
+			formats: ['es', 'umd'],
+			fileName: (format) => `fly-el-form.${format}.js`,
 		},
 		rollupOptions: {
-			// 将 Vue 作为外部依赖，不打包到库文件中
 			external: ['vue'],
 			output: {
 				globals: {
-					vue: 'Vue', // 外部依赖的全局变量名
+					vue: 'Vue',
 				},
+				// 确保启用命名导出
 				exports: 'named',
 			},
 		},
-		minify: 'terser', // 使用 Terser 压缩代码
-		terserOptions: {
-			compress: {
-				drop_console: true, // 删除 console.log
-				drop_debugger: true, // 删除 debugger
-			},
-		},
+		// 暂时关闭压缩以便调试
+		minify: false,
+		// minify: 'terser',
+		// terserOptions: {
+		// 	compress: {
+		// 		drop_console: true,
+		// 		drop_debugger: true,
+		// 	},
+		// },
 	},
 })

@@ -20,6 +20,7 @@ export default defineConfig({
 				globals: {
 					vue: 'Vue', // 外部依赖的全局变量名
 				},
+				exports: 'named',
 			},
 		},
 		minify: 'terser', // 使用 Terser 压缩代码

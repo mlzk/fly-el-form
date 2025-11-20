@@ -18,7 +18,7 @@ import {
 	type Ref,
 } from 'vue'
 // 创建表单上下文符号
-const FormValuesSymbol = Symbol('formValues')
+export const FormValuesSymbol = Symbol('formValues')
 
 const FlyElForm = defineComponent({
 	name: 'FlyElForm',

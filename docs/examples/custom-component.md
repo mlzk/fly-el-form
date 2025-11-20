@@ -123,7 +123,7 @@ export default {
 	</div>
 </template>
 <script setup>
-import { useFormValues } from 'fly-el-form'
+import  { useFormValues } from 'fly-el-form'
 const formValues = useFormValues()
 
 </script>

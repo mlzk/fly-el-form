@@ -101,6 +101,10 @@ function getExamplesSidebar() {
 					text: 'asyncSubmit',
 					link: '/examples/async-submit',
 				},
+				{
+					text: 'v-model',
+					link: '/examples/v-model',
+				},
 			],
 		},
 	]

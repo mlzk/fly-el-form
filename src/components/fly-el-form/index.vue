@@ -26,6 +26,11 @@ export { useFormValues }
 const FlyElForm = defineComponent({
 	name: 'FlyElForm',
 	props: {
+		// 新增：支持 v-model
+		modelValue: {
+			type: Object,
+			default: () => ({})
+		},
 		// 模式 默认form表单模式 search为搜索条模式
 		model: {
 			type: String,
@@ -132,6 +137,7 @@ const FlyElForm = defineComponent({
 			default: false,
 		},
 	},
+	emits: ['update:modelValue', 'submit', 'reset'],
 	setup(props, context) {
 
 		const isFirstInit = ref(true)
@@ -194,12 +200,10 @@ const FlyElForm = defineComponent({
 			}
 		}
 		const generatorRluesAndRequests = async (form: FlyFormTypes.Form) => {
-			// 如果没有数据直接返回
-			// 递归处理form数据
+			// 递归处理 form 数据，收集 rules, requests, formData 结构等
 			const res = collectFormContent(form)
-			// 优先 rules生成
-			// formContent.value = res.formContent
-			// 1. 增量更新 rules (保持不变)
+
+			// 1. 增量更新 rules
 			const newRules = res.rules
 			const oldRulesKeys = Object.keys(rules.value)
 			oldRulesKeys.forEach((key) => {
@@ -213,13 +217,12 @@ const FlyElForm = defineComponent({
 						!hasOwnPropertySafely(rules.value, key) ||
 						!isEqual(rules.value[key], newRules[key])
 					) {
-						console.log(key, newRules[key])
 						rules.value[key] = newRules[key]
 					}
 				}
 			}
 
-			// 2. 增量更新 requests (保持不变)
+			// 2. 增量更新 requests
 			const newRequests = res.requests
 			const oldRequestsKeys = Object.keys(requests.value)
 			oldRequestsKeys.forEach((key) => {
@@ -235,57 +238,86 @@ const FlyElForm = defineComponent({
 				}
 			}
 
-			// 3. 增量更新 formKeyAndName (关键修改！)
-			const newFormKeyAndName = res.formKeyAndName || {} // collectFormContent 应该返回 formKeyAndName
-			const oldFormKeyAndNameKeys = Object.keys(formKeyAndName)
+			// 3. 核心修改：处理 formValues 的初始化与合并
+			if (isFirstInit.value) {
+				// A. 优先级：外部传入的 v-model > 表单配置默认值
+				// 这样父组件只传 { id: 1 }，组件会自动补齐表单定义的其他字段（如 name: undefined）
+				const mergedData = Object.assign({}, res.formData, props.modelValue)
 
-			// 移除旧的但不再需要的 key-name 映射
-			oldFormKeyAndNameKeys.forEach((key) => {
+				// B. 设置内部响应式值
+				formValues.value = mergedData
+
+				// C. 立即同步回父组件，确保父组件拿到的 v-model 对象结构也是完整的
+				context.emit('update:modelValue', { ...formValues.value })
+
+				// D. 记录初始值，用于后续重置表单
+				formInitValues.value = Object.assign({}, res.formData)
+
+				// E. 执行数据源请求
+				const requestPromises = Object.keys(res.requests).map((key: string) => {
+					return res.requests[key]()
+				})
+
+				if (requestPromises.length > 0) {
+					await Promise.allSettled(requestPromises).catch((err) => {
+						console.warn('Form source data fetch error:', err)
+					})
+				}
+
+				// F. 处理回显覆盖（如果有旧逻辑中需要延迟覆盖的数据）
+				if (Object.keys(needOverWriteForm.value).length > 0) {
+					overWrite()
+				}
+
+				nextTick(() => {
+					isFirstInit.value = false
+				})
+			} else {
+				// 非首次初始化（如动态改变 form 配置时），仅同步不存在的 key
+				Object.keys(res.formData).forEach(key => {
+					if (!hasOwnPropertySafely(formValues.value, key)) {
+						formValues.value[key] = res.formData[key]
+					}
+				})
+			}
+
+			// 4. 更新 key-name 映射
+			const newFormKeyAndName = res.formKeyAndName || {}
+			Object.keys(formKeyAndName).forEach((key) => {
 				if (!hasOwnPropertySafely(newFormKeyAndName, key)) {
 					delete formKeyAndName[key]
 				}
 			})
-
-			// 添加或更新新的 key-name 映射
 			for (const key in newFormKeyAndName) {
-				if (hasOwnPropertySafely(newFormKeyAndName, key)) {
-					if (formKeyAndName[key] !== newFormKeyAndName[key]) {
-						// 比较值是否变化
-						formKeyAndName[key] = newFormKeyAndName[key]
-					}
+				if (formKeyAndName[key] !== newFormKeyAndName[key]) {
+					formKeyAndName[key] = newFormKeyAndName[key]
 				}
 			}
 
-			// 4. formContent (VNode 描述) 全量赋值，Vue 的 Diff 算法会处理其内部更新 (保持不变)
+			// 5. 更新 VNode 渲染描述
 			formContent.value = res.formContent
-
-			// 第一次渲染dom时 form表单初始值
-			if (isFirstInit.value) {
-				// 请求生成
-				const requests = Object.keys(res.requests).map((key: string) => {
-					return res.requests[key as keyof typeof res.requests]()
-				})
-				// form表单初始值 用于重置表单 每次生成新的初始值避免修改form之后重置表单会将用户主动设置的值清空
-				formInitValues.value = Object.assign({}, res.formData)
-				// 执行请求 完成数据源拉取
-				if (requests && requests.length > 0) {
-					await Promise.allSettled(requests).catch((err) => {
-						console.warn(err)
-					})
-				}
-				// form表单生成
-				formValues.value = Object.assign({}, res.formData)
-				if (needOverWriteForm.value) {
-					// @ts-ignore
-					overWrite(needOverWriteForm.value)
-					needOverWriteForm.value = {}
-				}
-				nextTick(() => {
-					isFirstInit.value = false
-				})
-			}
-			// form表单初始值 用于重置表单 每次生成新的初始值避免修改form之后重置表单会将用户主动设置的值清空
 		}
+
+		// 补充：在 setup 中配套的 watch 逻辑
+		watch(
+			() => props.modelValue,
+			(newVal) => {
+				// 当外部主动修改对象引用时（如：formData.value = { ... }），同步给内部
+				if (newVal && !isEqual(newVal, formValues.value)) {
+					Object.assign(formValues.value, newVal)
+				}
+			},
+			{ deep: true }
+		)
+
+		watch(
+			formValues,
+			(newVal) => {
+				// 当内部输入改变时，实时同步给父组件的 v-model
+				context.emit('update:modelValue', { ...newVal })
+			},
+			{ deep: true }
+		)
 		const collectFormContent = (
 			data: FlyFormTypes.FormItem[] = []
 		): FlyFormTypes.CollectedFormContent => {

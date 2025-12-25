@@ -2,17 +2,18 @@
 
 表单提供了一些方法用于某些需求的实现
 
-| 方法名称         | 说明                     | 参数         | 返回值                                                                     |
-| :--------------- | :----------------------- | :----------- | :------------------------------------------------------------------------- |
-| submit           | 触发校验                 |              |                                                                            |
-| reset            | 重置表单校验摒并清空表单 |              |                                                                            |
-| setFormValues    | 设置表单值（表单复现）   | form         |                                                                            |
-| setKeyValue      | 设置表单某个key的数据    | (key, value) |                                                                            |
-| getFormValues    | 获取表单数据             |              |                                                                            |
-| updateSource | 更新数据源              | [{key:String,value:[]}]        |                                                                            |
-| updateRequestSource | 更新配置接口的数据源               | [key] ｜ key     |                                                                            |
-| getFormRef          | 获取表单实例             |         |返回 form 组件的 ref 实例 |
-| getComponentRefByKey          | 获取表单组件实例             | key          |返回该 key 值的  ref 实例  |
+| 方法名称             | 说明                             | 参数                    | 返回值                                          |
+| :------------------- | :------------------------------- | :---------------------- | :---------------------------------------------- |
+| submit               | 仅触发表单 submit                |                         |                                                 |
+| asyncSubmit          | 触发校验并返回校验结果和表单数据 |                         |最常用的方法。它是异步的，会返回一个包含 valid（是否通过）、formValues（表单数据）和 errors（错误详情）的对象。|
+| reset                | 重置表单校验摒并清空表单         |                         |                                                 |
+| setFormValues        | 设置表单值（表单复现）           | form                    |                                                 |
+| setKeyValue          | 设置表单某个key的数据            | (key, value)            |                                                 |
+| getFormValues        | 获取表单数据                     |                         |                                                 |
+| updateSource         | 更新数据源                       | [{key:String,value:[]}] |                                                 |
+| updateRequestSource  | 更新配置接口的数据源             | [key] ｜ key            |                                                 |
+| getFormRef           | 获取表单实例                     |                         | 返回 form 组件的 ref 实例                       |
+| getComponentRefByKey | 获取表单组件实例                 | key                     | 返回该 key 值的 ref 实例                        |
 
 ::: tip
 
@@ -21,6 +22,7 @@
 :::
 
 ### 示例
+
 :::demo
 
 ```vue
@@ -32,9 +34,10 @@
 		<el-button @click="setKeyValue">setKeyValue</el-button>
 		<el-button @click="getFormValues">getFormValues</el-button>
 		<el-button @click="getFormRef">通过getFormRef获取formRef触发校验</el-button>
-		<el-button @click="focus">通过getComponentRefByKey使el-input获取焦点</el-button>
+		<el-button @click="focus"
+			>通过getComponentRefByKey使el-input获取焦点</el-button
+		>
 		<el-button @click="updateSource">更新数据源</el-button>
-		
 	</label-item>
 
 	<fly-el-form
@@ -95,7 +98,6 @@ originData.value = [
 ]
 
 const formProps = ref({
-
 	labelPosition: 'top',
 })
 
@@ -133,17 +135,19 @@ const focus = () => {
 	componentRef.focus()
 }
 const updateSource = () => {
-	formRef.value.updateSource([{
-		key:'select',
-		value:[{
-			label:'更新后的选项一',
-			value:1
-		}]
-	}])
+	formRef.value.updateSource([
+		{
+			key: 'select',
+			value: [
+				{
+					label: '更新后的选项一',
+					value: 1,
+				},
+			],
+		},
+	])
 }
 </script>
 ```
 
 :::
-
-

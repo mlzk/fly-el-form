@@ -97,6 +97,10 @@ function getExamplesSidebar() {
 					text: 'form子组件 ref 获取',
 					link: '/examples/custom-component',
 				},
+				{
+					text: 'asyncSubmit',
+					link: '/examples/async-submit',
+				},
 			],
 		},
 	]

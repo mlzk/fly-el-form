@@ -521,6 +521,64 @@ const FlyElForm = defineComponent({
 	},
 
 	methods: {
+		/**
+	 * 异步提交方法，供父组件通过 ref 调用
+	 * @returns Promise<{ valid: boolean, formValues: any, sourceData?: any }>
+	 */
+		async asyncSubmit() {
+			// 获取表单实例
+			// @ts-ignore
+			const formRef: FormInstance = this.$refs.FlyFormRef
+
+			try {
+				// Element Plus 的 validate 方法在不传回调时返回 Promise
+				const valid = await formRef.validate();
+
+				// 准备返回数据
+				let returnData: any = {
+					valid: true,
+					formValues: { ...this.formValues },
+				};
+
+				// 处理需要返回的源数据
+				if (this.needReturnSourceKeys && this.needReturnSourceKeys.length > 0) {
+					let templateSourceData: Record<string, any> = {};
+					this.needReturnSourceKeys.forEach((key: string) => {
+						templateSourceData[key] = this.sourceData[key];
+					});
+					returnData.sourceData = templateSourceData;
+				}
+
+				return returnData;
+			} catch (errors: any) {
+				// 校验失败逻辑（保持与原 submit 一致的错误提示）
+				if (this.$props.model === 'search') {
+					const errorMsg: any[] = [];
+					const errorNames: any[] = [];
+
+					Object.keys(errors).forEach((key) => {
+						const item = errors[key][0];
+						errorMsg.push(item.message);
+						errorNames.push(this.formKeyAndName[key]);
+					});
+
+					if (this.$props.singleStepErrorTip) {
+						ElMessage.error(errorMsg[0]);
+					} else {
+						ElMessage.error(
+							`请完善${errorNames.length > 0 ? errorNames.join('、') : '查询条件'}`
+						);
+					}
+				}
+
+				// 即使校验失败，也返回 valid: false 和当前数据，方便外部处理
+				return {
+					valid: false,
+					formValues: this.formValues,
+					errors
+				};
+			}
+		},
 		async submit() {
 			// @ts-ignore
 			const formRef: FormInstance = this.$refs.FlyFormRef
@@ -534,7 +592,6 @@ const FlyElForm = defineComponent({
 					formValues: this.formValues,
 				}
 				// 如果存在额外的数据收集，则将额外的数据收集添加到返回数据中
-				console.log(this.needReturnSourceKeys)
 				if (this.needReturnSourceKeys && this.needReturnSourceKeys.length > 0) {
 					let templateSourceData: Record<string, any> = {}
 					this.needReturnSourceKeys.forEach((key: string) => {
@@ -580,7 +637,6 @@ const FlyElForm = defineComponent({
 			}
 		},
 		getComponentRefByKey(key: string) {
-			console.log(key)
 			if (key && typeof key === 'string') {
 				try {
 					return this.$refs[key]

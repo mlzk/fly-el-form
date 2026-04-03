@@ -95,6 +95,28 @@
 	}
 }
 
+.fly-form-spin-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(255, 255, 255, 0.6);
+	z-index: 9999;
+}
+
+.fly-form-spin-spinner {
+	width: 32px;
+	height: 32px;
+	border: 3px solid rgba(0, 0, 0, 0.12);
+	border-top-color: #409eff;
+	border-radius: 50%;
+	animation: ani-form-spin 1s linear infinite;
+}
+
 .fly-form-hide-label {
 	.el-form-item__label {
 		display: none !important;

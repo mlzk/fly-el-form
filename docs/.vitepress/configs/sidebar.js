@@ -105,6 +105,10 @@ function getExamplesSidebar() {
 					text: 'v-model',
 					link: '/examples/v-model',
 				},
+				{
+					text: '表单加载旋转动画',
+					link: '/examples/enable-spin',
+				},
 			],
 		},
 	]

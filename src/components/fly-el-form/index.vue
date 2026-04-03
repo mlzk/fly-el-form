@@ -46,12 +46,17 @@ const FlyElForm = defineComponent({
 			type: Boolean,
 			default: false,
 		},
+		// 是否启用表单加载旋转动画（仅 form 模式启用）
+		enableSpin: {
+			type: Boolean,
+			default: false,
+		},
 		/**
 		 * 表单数据
 		 */
 		form: {
 			type: Object,
-			require: true,
+			required: true,
 		},
 		/**
 		 * 表单状态
@@ -152,6 +157,21 @@ const FlyElForm = defineComponent({
 		const needOverWriteForm = ref<Record<string, any>>({})
 		const needReturnSourceKeys = ref<string[]>([])
 		const updateTimeout = ref<NodeJS.Timeout | null>(null)
+		// form 模式数据源请求/联动更新期间的 loading 状态
+		const spinRequestCount = ref(0)
+		const isSpinLoading = ref(false)
+		const startSpin = () => {
+			if (!(props.enableSpin && props.model === 'form')) return
+			spinRequestCount.value += 1
+			isSpinLoading.value = true
+		}
+		const stopSpin = () => {
+			if (!(props.enableSpin && props.model === 'form')) return
+			spinRequestCount.value = Math.max(0, spinRequestCount.value - 1)
+			if (spinRequestCount.value === 0) {
+				isSpinLoading.value = false
+			}
+		}
 		// 创建一个响应式对象来存储组件引用
 		const componentRefs = ref<Record<string, any>>({})
 		// 创建 ref 绑定的方法
@@ -201,6 +221,9 @@ const FlyElForm = defineComponent({
 		}
 		const generatorRluesAndRequests = async (form: FlyFormTypes.Form) => {
 			// 递归处理 form 数据，收集 rules, requests, formData 结构等
+			// 每次重新解析表单配置时，重置需要返回的数据源 key
+			// 避免动态更新 form 配置后保留旧字段导致回显/提交返回脏数据
+			needReturnSourceKeys.value = []
 			const res = collectFormContent(form)
 
 			// 1. 增量更新 rules
@@ -259,9 +282,14 @@ const FlyElForm = defineComponent({
 				})
 
 				if (requestPromises.length > 0) {
-					await Promise.allSettled(requestPromises).catch((err) => {
-						console.warn('Form source data fetch error:', err)
-					})
+					startSpin()
+					try {
+						await Promise.allSettled(requestPromises).catch((err) => {
+							console.warn('Form source data fetch error:', err)
+						})
+					} finally {
+						stopSpin()
+					}
 				}
 
 				// F. 处理回显覆盖（如果有旧逻辑中需要延迟覆盖的数据）
@@ -273,13 +301,31 @@ const FlyElForm = defineComponent({
 					isFirstInit.value = false
 				})
 			} else {
-				// 非首次初始化（如动态改变 form 配置时），仅同步不存在的 key
-				Object.keys(res.formData).forEach(key => {
+				// 非首次初始化（如动态改变 form 配置时）
+				// 1) 移除旧的 key，避免残留脏数据
+				Object.keys(formValues.value).forEach((key) => {
+					if (!hasOwnPropertySafely(res.formData, key)) {
+						delete formValues.value[key]
+					}
+				})
+
+				// 2) 补齐新增 key
+				Object.keys(res.formData).forEach((key) => {
 					if (!hasOwnPropertySafely(formValues.value, key)) {
 						formValues.value[key] = res.formData[key]
 					}
 				})
+
+				// 3) 更新初始值快照（用于后续重置/数据源处理场景）
+				formInitValues.value = Object.assign({}, res.formData)
 			}
+
+			// 清理 sourceData：移除已不在当前 form 定义中的字段
+			Object.keys(sourceData.value).forEach((key) => {
+				if (!hasOwnPropertySafely(res.formData, key)) {
+					delete sourceData.value[key]
+				}
+			})
 
 			// 4. 更新 key-name 映射
 			const newFormKeyAndName = res.formKeyAndName || {}
@@ -511,7 +557,7 @@ const FlyElForm = defineComponent({
 		watch(
 			// @ts-ignore
 			props.form,
-			async (newVal, oldVal: FlyFormTypes.Form) => {
+			async (newVal: FlyFormTypes.Form) => {
 				// @ts-ignore
 				await generatorRluesAndRequests(newVal)
 			},
@@ -548,7 +594,10 @@ const FlyElForm = defineComponent({
 			updateTimeout,
 			componentRefs,
 			setComponentRef,
-			getComponentRefByKey
+			getComponentRefByKey,
+			isSpinLoading,
+			startSpin,
+			stopSpin,
 		}
 	},
 
@@ -568,7 +617,7 @@ const FlyElForm = defineComponent({
 
 				// 准备返回数据
 				let returnData: any = {
-					valid: true,
+					valid,
 					formValues: { ...this.formValues },
 				};
 
@@ -670,11 +719,14 @@ const FlyElForm = defineComponent({
 		},
 		getComponentRefByKey(key: string) {
 			if (key && typeof key === 'string') {
-				try {
-					return this.$refs[key]
-				} catch (error) {
-					console.error(error)
-				}
+				// setup 中使用函数式 ref 收集组件实例到 componentRefs
+				// 文档/调用方应从该缓存中获取，而不是依赖 this.$refs（函数式 ref 不会稳定写入字符串 $refs）
+				const map =
+					(this as any).componentRefs &&
+					(this as any).componentRefs.value !== undefined
+						? (this as any).componentRefs.value
+						: (this as any).componentRefs
+				return map ? map[key] : null
 			} else {
 				console.error('请传入正确的key')
 				return false
@@ -758,6 +810,7 @@ const FlyElForm = defineComponent({
 		async updateRequestSource(keys?: string | string[]) {
 			if (!keys) return
 			let updateRequests: Promise<any>[] = []
+			this.startSpin()
 			if (Array.isArray(keys)) {
 				for (let i = 0; i < keys.length; i++) {
 					updateRequests.push(this.requests[keys[i]]())
@@ -766,12 +819,17 @@ const FlyElForm = defineComponent({
 				updateRequests = [this.requests[keys]()]
 			}
 			if (updateRequests.length === 0) {
+				this.stopSpin()
 				return console.warn('请传入正确的keys')
 			}
-			await Promise.allSettled(updateRequests).catch((err) => {
-				console.warn(err)
-			})
-			this.$forceUpdate()
+			try {
+				await Promise.allSettled(updateRequests).catch((err) => {
+					console.warn(err)
+				})
+			} finally {
+				this.stopSpin()
+				this.$forceUpdate()
+			}
 		},
 		/**
 		 * 设置表单值
@@ -1023,6 +1081,8 @@ const FlyElForm = defineComponent({
 					prop: item.key,
 					label: item.name,
 					class: `fly-form-item ${item.class ? item.class : ''}`,
+					// formItemProps 作为全局默认配置，单项配置优先级更高
+					...props.formItemProps,
 					...item.formItemProps,
 				},
 				slotRender
@@ -1524,8 +1584,17 @@ const FlyElForm = defineComponent({
 					} ${(props.formProps && props.formProps.class) || ''} ${props.model == 'search' ? 'fly-search' : ''
 					}`,
 			},
-
-			FormNode
+			[
+				FormNode,
+				// 仅 form 模式 + enableSpin 开启时展示
+				props.model === 'form' && props.enableSpin && this.isSpinLoading
+					? h(
+							'div',
+							{ class: 'fly-form-spin-overlay' },
+							[h('div', { class: 'fly-form-spin-spinner' })]
+						)
+					: null,
+			]
 		)
 	},
 }) as any

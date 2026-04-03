@@ -7,8 +7,8 @@ titleTemplate:  element-plus的 JSON To Form 轻量化表单组件。
 hero:
   name: "Fly-El-Form"
   text: "轻量化表单组件"
-  tagline: "减少的不必要的体力劳作，摸鱼更快"
-
+  tagline: "表单结构由配置驱动，把渲染、校验、数据回填、联动请求都收敛到一套配置与统一接口里，适合字段多且存在联动/异步数据源的业务场景。"
+		
   image: /logo.svg
 	actions:
     - theme: brand
